@@ -1,0 +1,14 @@
+int main()
+{
+	printf("21373132");
+	printf("\n21373132");
+	printf("\n21373132");
+	printf("\n21373132");
+	printf("\n21373132");
+	printf("\n21373132");
+	printf("\n21373132");
+	printf("\n21373132");
+	printf("\n21373132");
+	printf("\n%d %d %d", 1==1, 2!=2, (2!=2)&&(1==1));
+	return 0+0;
+}
