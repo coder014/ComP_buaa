@@ -3,10 +3,12 @@ package compiler;
 public class Token {
     private final Type type;
     private final String value;
+    private final int lineNum;
 
-    public Token(Type type, String value) {
+    public Token(Type type, String value, int lineNum) {
         this.type = type;
         this.value = value;
+        this.lineNum = lineNum;
     }
 
     public Type getType() {
@@ -24,7 +26,7 @@ public class Token {
         else return String.format("%s %s", type, value);
     }
 
-    enum Type {
+    public enum Type {
         IDENFR, INTCON, STRCON,
         MAINTK, CONSTTK, INTTK, BREAKTK, CONTINUETK, IFTK,
         ELSETK, FORTK, GETINTTK, PRINTFTK, RETURNTK, VOIDTK,

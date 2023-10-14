@@ -73,7 +73,7 @@ public class Lexer {
     public Token next() {
         Character c = getc(), tc;
         if (c == null) {
-            Utils.logErrorf("compiler.Lexer got unexpected EOF\n");
+            Utils.logErrorf("Lexer got unexpected EOF\n");
             return null;
         } else if (c.equals('\"')) {
             return dealStr();
@@ -81,72 +81,72 @@ public class Lexer {
             tc = peek();
             if (Character.valueOf('=').equals(tc)) {
                 getc();
-                return new Token(Token.Type.NEQ, "!=");
+                return new Token(Token.Type.NEQ, "!=", lineNum);
             }
-            return new Token(Token.Type.NOT, "!");
+            return new Token(Token.Type.NOT, "!", lineNum);
         } else if (c.equals('&')) {
             tc = peek();
             if (Character.valueOf('&').equals(tc)) {
                 getc();
-                return new Token(Token.Type.AND, "&&");
+                return new Token(Token.Type.AND, "&&", lineNum);
             }
-            Utils.logErrorf("compiler.Lexer got single `&` at line %d\n", lineNum);
+            Utils.logErrorf("Lexer got single `&` at line %d\n", lineNum);
             return null;
         } else if (c.equals('|')) {
             tc = peek();
             if (Character.valueOf('|').equals(tc)) {
                 getc();
-                return new Token(Token.Type.OR, "||");
+                return new Token(Token.Type.OR, "||", lineNum);
             }
-            Utils.logErrorf("compiler.Lexer got single `|` at line %d\n", lineNum);
+            Utils.logErrorf("Lexer got single `|` at line %d\n", lineNum);
             return null;
         } else if (c.equals('+')) {
-            return new Token(Token.Type.PLUS, "+");
+            return new Token(Token.Type.PLUS, "+", lineNum);
         } else if (c.equals('-')) {
-            return new Token(Token.Type.MINU, "-");
+            return new Token(Token.Type.MINU, "-", lineNum);
         } else if (c.equals('*')) {
-            return new Token(Token.Type.MULT, "*");
+            return new Token(Token.Type.MULT, "*", lineNum);
         } else if (c.equals('/')) {
-            return new Token(Token.Type.DIV, "/");
+            return new Token(Token.Type.DIV, "/", lineNum);
         } else if (c.equals('%')) {
-            return new Token(Token.Type.MOD, "%");
+            return new Token(Token.Type.MOD, "%", lineNum);
         } else if (c.equals('<')) {
             tc = peek();
             if (Character.valueOf('=').equals(tc)) {
                 getc();
-                return new Token(Token.Type.LEQ, "<=");
+                return new Token(Token.Type.LEQ, "<=", lineNum);
             }
-            return new Token(Token.Type.LSS, "<");
+            return new Token(Token.Type.LSS, "<", lineNum);
         } else if (c.equals('>')) {
             tc = peek();
             if (Character.valueOf('=').equals(tc)) {
                 getc();
-                return new Token(Token.Type.GEQ, ">=");
+                return new Token(Token.Type.GEQ, ">=", lineNum);
             }
-            return new Token(Token.Type.GRE, ">");
+            return new Token(Token.Type.GRE, ">", lineNum);
         } else if (c.equals('=')) {
             tc = peek();
             if (Character.valueOf('=').equals(tc)) {
                 getc();
-                return new Token(Token.Type.EQL, "==");
+                return new Token(Token.Type.EQL, "==", lineNum);
             }
-            return new Token(Token.Type.ASSIGN, "=");
+            return new Token(Token.Type.ASSIGN, "=", lineNum);
         } else if (c.equals(';')) {
-            return new Token(Token.Type.SEMICN, ";");
+            return new Token(Token.Type.SEMICN, ";", lineNum);
         } else if (c.equals(',')) {
-            return new Token(Token.Type.COMMA, ",");
+            return new Token(Token.Type.COMMA, ",", lineNum);
         } else if (c.equals('(')) {
-            return new Token(Token.Type.LPARENT, "(");
+            return new Token(Token.Type.LPARENT, "(", lineNum);
         } else if (c.equals(')')) {
-            return new Token(Token.Type.RPARENT, ")");
+            return new Token(Token.Type.RPARENT, ")", lineNum);
         } else if (c.equals('[')) {
-            return new Token(Token.Type.LBRACK, "[");
+            return new Token(Token.Type.LBRACK, "[", lineNum);
         } else if (c.equals(']')) {
-            return new Token(Token.Type.RBRACK, "]");
+            return new Token(Token.Type.RBRACK, "]", lineNum);
         } else if (c.equals('{')) {
-            return new Token(Token.Type.LBRACE, "{");
+            return new Token(Token.Type.LBRACE, "{", lineNum);
         } else if (c.equals('}')) {
-            return new Token(Token.Type.RBRACE, "}");
+            return new Token(Token.Type.RBRACE, "}", lineNum);
         } else if ((c.compareTo('a') >= 0 && c.compareTo('z') <= 0)
                 || (c.compareTo('A') >= 0 && c.compareTo('Z') <= 0)
                 || c.equals('_')) {
@@ -154,7 +154,7 @@ public class Lexer {
         } else if (c.compareTo('0') >= 0 && c.compareTo('9') <= 0) {
             return dealInt(c);
         }
-        Utils.logErrorf("compiler.Lexer got unexpected char `%c` at line %d\n", c, lineNum);
+        Utils.logErrorf("Lexer got unexpected char `%c` at line %d\n", c, lineNum);
         return null;
     }
 
@@ -163,18 +163,18 @@ public class Lexer {
         while (true) {
             var tc = peek();
             if (tc == null) {
-                Utils.logErrorf("compiler.Lexer got unexpected EOF\n");
+                Utils.logErrorf("Lexer got unexpected EOF\n");
                 return null;
             }
             if (tc.compareTo(' ') < 0 || tc.compareTo('~') > 0) {
-                Utils.logErrorf("compiler.Lexer got unexpected char(ascii %d) in a constant string at line %d\n", tc, lineNum);
+                Utils.logErrorf("Lexer got unexpected char(ascii %d) in a constant string at line %d\n", tc, lineNum);
                 return null;
             }
             getc();
             if (tc.equals('\"')) break;
             sb.append(tc);
         }
-        return new Token(Token.Type.STRCON, sb.toString());
+        return new Token(Token.Type.STRCON, sb.toString(), lineNum);
     }
 
     private Token dealInt(char c) {
@@ -188,8 +188,8 @@ public class Lexer {
         }
         var res = sb.toString();
         if (res.length() > 1 && res.charAt(0) == '0')
-            Utils.logWarnf("compiler.Lexer parsed a constant integer with leading zero at line %d\n", lineNum);
-        return new Token(Token.Type.INTCON, res);
+            Utils.logWarnf("Lexer parsed a constant integer with leading zero at line %d\n", lineNum);
+        return new Token(Token.Type.INTCON, res, lineNum);
     }
 
     private Token dealIdent(char c) {
@@ -206,15 +206,15 @@ public class Lexer {
         }
         var res = sb.toString();
         var resType = keywordMap.get(res);
-        if (resType == null) return new Token(Token.Type.IDENFR, res);
-        return new Token(resType, res);
+        if (resType == null) return new Token(Token.Type.IDENFR, res, lineNum);
+        return new Token(resType, res, lineNum);
     }
 
     private void ungetc(char c) {
         try {
             source.unread(c);
         } catch (IOException e) {
-            Utils.logErrorf("compiler.Lexer got: %s\n", e.getMessage());
+            Utils.logErrorf("Lexer got: %s\n", e.getMessage());
         }
     }
 
@@ -227,7 +227,7 @@ public class Lexer {
             }
             return (char) c;
         } catch (IOException e) {
-            Utils.logErrorf("compiler.Lexer got: %s\n", e.getMessage());
+            Utils.logErrorf("Lexer got: %s\n", e.getMessage());
             return null;
         }
     }
@@ -242,7 +242,7 @@ public class Lexer {
             source.unread(c);
             return (char) c;
         } catch (IOException e) {
-            Utils.logErrorf("compiler.Lexer got: %s\n", e.getMessage());
+            Utils.logErrorf("Lexer got: %s\n", e.getMessage());
             return null;
         }
     }

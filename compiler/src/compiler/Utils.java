@@ -1,11 +1,32 @@
 package compiler;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.io.PushbackInputStream;
 
 public class Utils {
     private static LogLevel logLevel = LogLevel.INFO;
+    private static PrintStream originOutStream;
+    private static ByteArrayOutputStream bufferStream;
+
+    public static void freezeOutput() {
+        originOutStream = System.out;
+        bufferStream = new ByteArrayOutputStream(4096);
+        System.setOut(new PrintStream(bufferStream));
+    }
+    public static void resumeOutput() {
+        System.setOut(originOutStream);
+        if (bufferStream != null) {
+            final var buf = bufferStream.toByteArray();
+            System.out.write(buf, 0, buf.length);
+        }
+    }
+    public static void discardOutput() {
+        bufferStream = null;
+    }
 
     public static PushbackInputStream getFileAsStream(String filename) {
         try {
