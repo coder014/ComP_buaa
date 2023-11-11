@@ -12,7 +12,7 @@ public class Utils {
     private static PrintStream originOutStream;
     private static ByteArrayOutputStream bufferStream;
 
-    public static void freezeOutput() {
+   /* public static void freezeOutput() {
         originOutStream = System.out;
         bufferStream = new ByteArrayOutputStream(4096);
         System.setOut(new PrintStream(bufferStream));
@@ -26,7 +26,7 @@ public class Utils {
     }
     public static void discardOutput() {
         bufferStream = null;
-    }
+    }*/
 
     public static PushbackInputStream getFileAsStream(String filename) {
         try {

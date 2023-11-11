@@ -21,24 +21,20 @@ public class InitVal {
     public static InitVal parse(ParseState state) {
         final InitVal res;
         if (state.getCurToken().getType() == Token.Type.LBRACE) {
-            System.out.println(state.getCurToken());
-            state.nextToken();
+                        state.nextToken();
             res = new InitVal(null);
             if (state.getCurToken().getType() != Token.Type.RBRACE) {
                 res.appendVal(parse(state));
                 while (state.getCurToken().getType() == Token.Type.COMMA) {
-                    System.out.println(state.getCurToken());
-                    state.nextToken();
+                                        state.nextToken();
                     res.appendVal(parse(state));
                 }
             }
-            System.out.println(state.getCurToken());
-            state.nextToken();
+                        state.nextToken();
         } else {
             res = new InitVal(Exp.parse(state));
         }
-        System.out.println(TYPESTR);
-        return res;
+                return res;
     }
 
     public static final String TYPESTR = "<InitVal>";

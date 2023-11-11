@@ -12,10 +12,8 @@ public class FuncType {
 
     public static FuncType parse(ParseState state) {
         final var res = new FuncType(state.getCurToken());
-        System.out.println(state.getCurToken());
-        state.nextToken();
-        System.out.println(TYPESTR);
-        return res;
+                state.nextToken();
+                return res;
     }
 
     public static final String TYPESTR = "<FuncType>";

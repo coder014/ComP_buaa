@@ -3,6 +3,7 @@ package nonterm;
 import compiler.ParseState;
 import compiler.Token;
 import compiler.Utils;
+import symbol.CompError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,16 +100,18 @@ public class Stmt {
         if (state.getCurToken().getType() == Token.Type.LBRACE) {
             res = new Stmt(Block.parse(state));
         } else if (state.getCurToken().getType() == Token.Type.IFTK) {
-            System.out.println(state.getCurToken());
             state.nextToken();
-            System.out.println(state.getCurToken());
             state.nextToken();
             final var t1 = Cond.parse(state);
-            System.out.println(state.getCurToken());
-            state.nextToken();
+            if (state.getCurToken().getType() == Token.Type.RPARENT) {
+                state.nextToken();
+            } else {
+                state.ungetToken();
+                CompError.appendError(state.getCurToken().getLineNum(), 'j', "Missing `)` as if(Cond)");
+                state.nextToken();
+            }
             final var t2 = Stmt.parse(state);
             if (state.getCurToken().getType() == Token.Type.ELSETK) {
-                System.out.println(state.getCurToken());
                 state.nextToken();
                 res = new Stmt(t1, t2, Stmt.parse(state));
             } else {
@@ -117,68 +120,90 @@ public class Stmt {
         } else if (state.getCurToken().getType() == Token.Type.FORTK) {
             final ForStmt t1, t3;
             final Cond t2;
-            System.out.println(state.getCurToken());
             state.nextToken();
-            System.out.println(state.getCurToken());
             state.nextToken();
             if (state.getCurToken().getType() == Token.Type.SEMICN) t1 = null;
             else t1 = ForStmt.parse(state);
-            System.out.println(state.getCurToken());
             state.nextToken();
             if (state.getCurToken().getType() == Token.Type.SEMICN) t2 = null;
             else t2 = Cond.parse(state);
-            System.out.println(state.getCurToken());
             state.nextToken();
             if (state.getCurToken().getType() == Token.Type.RPARENT) t3 = null;
             else t3 = ForStmt.parse(state);
-            System.out.println(state.getCurToken());
             state.nextToken();
             res = new Stmt(t1, t2, t3, Stmt.parse(state));
         } else if (state.getCurToken().getType() == Token.Type.BREAKTK
                 || state.getCurToken().getType() == Token.Type.CONTINUETK) {
-            System.out.println(state.getCurToken());
             res = new Stmt(state.getCurToken());
+            final var lineNum = state.getCurToken().getLineNum();
             state.nextToken();
-            System.out.println(state.getCurToken());
-            state.nextToken();
+            if (state.getCurToken().getType() == Token.Type.SEMICN) {
+                state.nextToken();
+            } else {
+                CompError.appendError(lineNum, 'i', "Missing `;` after token break/continue");
+            }
         } else if (state.getCurToken().getType() == Token.Type.RETURNTK) {
-            System.out.println(state.getCurToken());
             state.nextToken();
-            if (state.getCurToken().getType() == Token.Type.SEMICN)
-                res = new Stmt(true, null);
-            else res = new Stmt(true, Exp.parse(state));
-            System.out.println(state.getCurToken());
-            state.nextToken();
+            if (state.getCurToken().getType() == Token.Type.IDENFR
+                    || state.getCurToken().getType() == Token.Type.PLUS
+                    || state.getCurToken().getType() == Token.Type.MINU
+                    || state.getCurToken().getType() == Token.Type.NOT
+                    || state.getCurToken().getType() == Token.Type.LPARENT
+                    || state.getCurToken().getType() == Token.Type.INTCON) {
+                res = new Stmt(true, Exp.parse(state));
+            } else res = new Stmt(true, null);
+            if (state.getCurToken().getType() == Token.Type.SEMICN) {
+                state.nextToken();
+            } else {
+                state.ungetToken();
+                CompError.appendError(state.getCurToken().getLineNum(), 'i', "Missing `;` after return exp");
+                state.nextToken();
+            }
         } else if (state.getCurToken().getType() == Token.Type.PRINTFTK) {
-            System.out.println(state.getCurToken());
             state.nextToken();
-            System.out.println(state.getCurToken());
             state.nextToken();
             final var t1 = state.getCurToken();
+            final var fmtStr = t1.getValue();
+            for (int i=0; i<fmtStr.length(); i++) {
+                var c = fmtStr.charAt(i);
+                if (c != 32 && c != 33 && (c < 40 || c > 126)) {
+                    CompError.appendError(t1.getLineNum(), 'a', fmtStr);
+                    break;
+                } else if (c == '\\' && (i+1 >= fmtStr.length() || fmtStr.charAt(i+1) != 'n')) {
+                    CompError.appendError(t1.getLineNum(), 'a', fmtStr);
+                    break;
+                }
+            }
             final var t2 = new ArrayList<Exp>();
-            System.out.println(t1);
             state.nextToken();
             while (state.getCurToken().getType() == Token.Type.COMMA) {
-                System.out.println(state.getCurToken());
                 state.nextToken();
                 t2.add(Exp.parse(state));
             }
             res = new Stmt(t1, t2);
-            System.out.println(state.getCurToken());
-            state.nextToken();
-            System.out.println(state.getCurToken());
-            state.nextToken();
+            if (state.getCurToken().getType() == Token.Type.RPARENT) {
+                state.nextToken();
+            } else {
+                state.ungetToken();
+                CompError.appendError(state.getCurToken().getLineNum(), 'j', "Missing `)` as printf()");
+                state.nextToken();
+            }
+            if (state.getCurToken().getType() == Token.Type.SEMICN) {
+                state.nextToken();
+            } else {
+                state.ungetToken();
+                CompError.appendError(state.getCurToken().getLineNum(), 'i', "Missing `;` as printf()");
+                state.nextToken();
+            }
         } else if (state.getCurToken().getType() == Token.Type.LPARENT
                 || state.getCurToken().getType() == Token.Type.INTCON
                 || state.getCurToken().getType() == Token.Type.PLUS
                 || state.getCurToken().getType() == Token.Type.MINU
                 || state.getCurToken().getType() == Token.Type.NOT) {
             res = new Stmt(false, Exp.parse(state));
-            System.out.println(state.getCurToken());
             state.nextToken();
         } else if (state.getCurToken().getType() == Token.Type.SEMICN) {
             res = new Stmt(false, null);
-            System.out.println(state.getCurToken());
             state.nextToken();
         } else { // IDENT, may be rule 1, 2 or 8
             final Token t1, t2;
@@ -187,46 +212,63 @@ public class Stmt {
             if (t1.getType() == Token.Type.IDENFR // rule 2
                     && t2.getType() == Token.Type.LPARENT) {
                 res = new Stmt(false, Exp.parse(state));
-                System.out.println(state.getCurToken());
-                state.nextToken();
+                if (state.getCurToken().getType() == Token.Type.SEMICN) {
+                    state.nextToken();
+                } else {
+                    state.ungetToken();
+                    CompError.appendError(state.getCurToken().getLineNum(), 'i', "Missing `;` as Stmt -> [Exp];");
+                    state.nextToken();
+                }
             } else { // rule 1, 2 or 8
                 // first parse the LVal
                 state.startRecovery();
-                Utils.freezeOutput();
                 final var tVal = LVal.parse(state);
                 if (state.getCurToken().getType() == Token.Type.ASSIGN) {
                     // rule 1 or 8
                     state.abortRecovery();
-                    Utils.resumeOutput();
-                    System.out.println(state.getCurToken());
                     state.nextToken();
                     if (state.getCurToken().getType() == Token.Type.GETINTTK) {
                         // rule 8
-                        System.out.println(state.getCurToken());
                         state.nextToken();
-                        System.out.println(state.getCurToken());
                         state.nextToken();
-                        System.out.println(state.getCurToken());
-                        state.nextToken();
-                        System.out.println(state.getCurToken());
-                        state.nextToken();
+                        if (state.getCurToken().getType() == Token.Type.RPARENT) {
+                            state.nextToken();
+                        } else {
+                            state.ungetToken();
+                            CompError.appendError(state.getCurToken().getLineNum(), 'j', "Missing `)` as Stmt -> LVal = getint()");
+                            state.nextToken();
+                        }
+                        if (state.getCurToken().getType() == Token.Type.SEMICN) {
+                            state.nextToken();
+                        } else {
+                            state.ungetToken();
+                            CompError.appendError(state.getCurToken().getLineNum(), 'i', "Missing `;` as Stmt -> LVal = getint()");
+                            state.nextToken();
+                        }
                         res = new Stmt(tVal);
                     } else { // rule 1
                         res = new Stmt(tVal, Exp.parse(state));
-                        System.out.println(state.getCurToken());
-                        state.nextToken();
+                        if (state.getCurToken().getType() == Token.Type.SEMICN) {
+                            state.nextToken();
+                        } else {
+                            state.ungetToken();
+                            CompError.appendError(state.getCurToken().getLineNum(), 'i', "Missing `;` as Stmt -> LVal = [Exp];");
+                            state.nextToken();
+                        }
                     }
                 } else { // rule 2
                     state.doneRecovery();
-                    Utils.discardOutput();
-                    Utils.resumeOutput();
                     res = new Stmt(false, Exp.parse(state));
-                    System.out.println(state.getCurToken());
-                    state.nextToken();
+                    if (state.getCurToken().getType() == Token.Type.SEMICN) {
+                        state.nextToken();
+                    } else {
+                        state.ungetToken();
+                        CompError.appendError(state.getCurToken().getLineNum(), 'i', "Missing `;` as Stmt -> [Exp];");
+                        state.nextToken();
+                    }
                 }
             }
         }
-        System.out.println(TYPESTR);
         return res;
     }
 

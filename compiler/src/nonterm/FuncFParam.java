@@ -2,6 +2,7 @@ package nonterm;
 
 import compiler.ParseState;
 import compiler.Token;
+import symbol.CompError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,23 +24,29 @@ public class FuncFParam {
     public static FuncFParam parse(ParseState state) {
         final var bType = BType.parse(state);
         final FuncFParam res = new FuncFParam(bType, state.getCurToken());
-        System.out.println(state.getCurToken());
         state.nextToken();
         if (state.getCurToken().getType() == Token.Type.LBRACK) {
-            System.out.println(state.getCurToken());
             state.nextToken();
             res.appendExp(null);
-            System.out.println(state.getCurToken());
-            state.nextToken();
-            while (state.getCurToken().getType() == Token.Type.LBRACK) {
-                System.out.println(state.getCurToken());
+            if (state.getCurToken().getType() == Token.Type.RBRACK) {
                 state.nextToken();
-                res.appendExp(ConstExp.parse(state));
-                System.out.println(state.getCurToken());
+            } else {
+                state.ungetToken();
+                CompError.appendError(state.getCurToken().getLineNum(), 'k', "Missing `]` as FuncFParam p[]");
                 state.nextToken();
             }
+            while (state.getCurToken().getType() == Token.Type.LBRACK) {
+                state.nextToken();
+                res.appendExp(ConstExp.parse(state));
+                if (state.getCurToken().getType() == Token.Type.RBRACK) {
+                    state.nextToken();
+                } else {
+                    state.ungetToken();
+                    CompError.appendError(state.getCurToken().getLineNum(), 'k', "Missing `]` as FuncFParam p[][exp]");
+                    state.nextToken();
+                }
+            }
         }
-        System.out.println(TYPESTR);
         return res;
     }
 

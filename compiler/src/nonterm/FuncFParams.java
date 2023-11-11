@@ -21,12 +21,10 @@ public class FuncFParams {
     public static FuncFParams parse(ParseState state) {
         final FuncFParams res = new FuncFParams(FuncFParam.parse(state));
         while (state.getCurToken().getType() == Token.Type.COMMA) {
-            System.out.println(state.getCurToken());
-            state.nextToken();
+                        state.nextToken();
             res.appendParam(FuncFParam.parse(state));
         }
-        System.out.println(TYPESTR);
-        return res;
+                return res;
     }
 
     public static final String TYPESTR = "<FuncFParams>";

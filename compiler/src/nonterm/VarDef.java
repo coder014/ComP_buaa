@@ -2,6 +2,7 @@ package nonterm;
 
 import compiler.ParseState;
 import compiler.Token;
+import symbol.CompError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,23 +22,24 @@ public class VarDef {
         final VarDef res;
         final Token token = state.getCurToken();
         final List<ConstExp> list = new ArrayList<>();
-        System.out.println(token);
         state.nextToken();
         while (state.getCurToken().getType() == Token.Type.LBRACK) {
-            System.out.println(state.getCurToken());
             state.nextToken();
             list.add(ConstExp.parse(state));
-            System.out.println(state.getCurToken());
-            state.nextToken();
+            if (state.getCurToken().getType() == Token.Type.RBRACK) {
+                state.nextToken();
+            } else {
+                state.ungetToken();
+                CompError.appendError(state.getCurToken().getLineNum(), 'k', "Missing `]` as VarDef arr[]");
+                state.nextToken();
+            }
         }
         if (state.getCurToken().getType() == Token.Type.ASSIGN) {
-            System.out.println(state.getCurToken());
             state.nextToken();
             res = new VarDef(token, list, InitVal.parse(state));
         } else {
             res = new VarDef(token, list, null);
         }
-        System.out.println(TYPESTR);
         return res;
     }
 

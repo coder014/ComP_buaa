@@ -11,8 +11,7 @@ public class Cond {
 
     public static Cond parse(ParseState state) {
         var res = new Cond(LOrExp.parse(state));
-        System.out.println(TYPESTR);
-        return res;
+                return res;
     }
 
     public static final String TYPESTR = "<Cond>";

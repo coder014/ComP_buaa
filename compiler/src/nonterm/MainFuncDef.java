@@ -1,6 +1,8 @@
 package nonterm;
 
 import compiler.ParseState;
+import compiler.Token;
+import symbol.CompError;
 
 public class MainFuncDef {
     private final Block block;
@@ -10,17 +12,17 @@ public class MainFuncDef {
     }
 
     public static MainFuncDef parse(ParseState state) {
-        System.out.println(state.getCurToken());
         state.nextToken();
-        System.out.println(state.getCurToken());
         state.nextToken();
-        System.out.println(state.getCurToken());
         state.nextToken();
-        System.out.println(state.getCurToken());
-        state.nextToken();
-        final MainFuncDef res = new MainFuncDef(Block.parse(state));
-        System.out.println(TYPESTR);
-        return res;
+        if (state.getCurToken().getType() == Token.Type.RPARENT) {
+            state.nextToken();
+        } else {
+            state.ungetToken();
+            CompError.appendError(state.getCurToken().getLineNum(), 'j', "Missing `)` as main()");
+            state.nextToken();
+        }
+        return new MainFuncDef(Block.parse(state));
     }
 
     public static final String TYPESTR = "<MainFuncDef>";

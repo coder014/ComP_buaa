@@ -33,8 +33,7 @@ public class CompUnit {
         while (predictDefType(state) == DefType.FUNCDEF)
             t2.add(FuncDef.parse(state));
         final var res = new CompUnit(t1, t2, MainFuncDef.parse(state));
-        System.out.println(TYPESTR);
-        return res;
+                return res;
     }
 
     private static DefType predictDefType(ParseState state) {

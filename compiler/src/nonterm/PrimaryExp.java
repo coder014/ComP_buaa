@@ -27,17 +27,14 @@ public class PrimaryExp {
     public static PrimaryExp parse(ParseState state) {
         final PrimaryExp res;
         if (state.getCurToken().getType() == Token.Type.LPARENT) {
-            System.out.println(state.getCurToken());
-            state.nextToken();
+                        state.nextToken();
             res = new PrimaryExp(Exp.parse(state));
-            System.out.println(state.getCurToken());
-            state.nextToken();
+                        state.nextToken();
         } else if (state.getCurToken().getType() == Token.Type.IDENFR) {
             res = new PrimaryExp(LVal.parse(state));
         } else {
             res = new PrimaryExp(Number.parse(state));
         }
-        System.out.println(TYPESTR);
         return res;
     }
 

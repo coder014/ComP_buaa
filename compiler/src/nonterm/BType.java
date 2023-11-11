@@ -12,7 +12,6 @@ public class BType {
 
     public static BType parse(ParseState state) {
         var res = new BType(state.getCurToken());
-        System.out.println(state.getCurToken());
         state.nextToken();
         return res;
     }

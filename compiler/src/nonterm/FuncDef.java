@@ -2,6 +2,7 @@ package nonterm;
 
 import compiler.ParseState;
 import compiler.Token;
+import symbol.CompError;
 
 public class FuncDef {
     private final FuncType type;
@@ -21,17 +22,27 @@ public class FuncDef {
         final var t2 = state.getCurToken();
         final FuncFParams t3;
         final FuncDef res;
-        System.out.println(t2);
         state.nextToken();
-        System.out.println(state.getCurToken());
         state.nextToken();
-        if (state.getCurToken().getType() != Token.Type.RPARENT) {
+        if (state.getCurToken().getType() == Token.Type.LBRACE) {
+            t3 = null;
+            state.ungetToken();
+            CompError.appendError(state.getCurToken().getLineNum(), 'j', "Missing `)` as FuncDef()");
+            state.nextToken();
+        } else if (state.getCurToken().getType() != Token.Type.RPARENT) {
             t3 = FuncFParams.parse(state);
-        } else t3 = null;
-        System.out.println(state.getCurToken());
-        state.nextToken();
+            if (state.getCurToken().getType() == Token.Type.RPARENT) {
+                state.nextToken();
+            } else {
+                state.ungetToken();
+                CompError.appendError(state.getCurToken().getLineNum(), 'j', "Missing `)` as FuncDef(params)");
+                state.nextToken();
+            }
+        } else {
+            t3 = null;
+            state.nextToken();
+        }
         res = new FuncDef(t1, t2, t3, Block.parse(state));
-        System.out.println(TYPESTR);
         return res;
     }
 

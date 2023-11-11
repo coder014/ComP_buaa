@@ -2,6 +2,7 @@ package nonterm;
 
 import compiler.ParseState;
 import compiler.Token;
+import symbol.CompError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,20 +21,20 @@ public class ConstDef {
     public static ConstDef parse(ParseState state) {
         final Token token = state.getCurToken();
         final List<ConstExp> list = new ArrayList<>();
-        System.out.println(token);
         state.nextToken();
         while (state.getCurToken().getType() == Token.Type.LBRACK) {
-            System.out.println(state.getCurToken());
             state.nextToken();
             list.add(ConstExp.parse(state));
-            System.out.println(state.getCurToken());
-            state.nextToken();
+            if (state.getCurToken().getType() == Token.Type.RBRACK) {
+                state.nextToken();
+            } else {
+                state.ungetToken();
+                CompError.appendError(state.getCurToken().getLineNum(), 'k', "Missing `]` as ConstDef arr[]");
+                state.nextToken();
+            }
         }
-        System.out.println(state.getCurToken());
         state.nextToken();
-        final ConstDef res = new ConstDef(token, list, ConstInitVal.parse(state));
-        System.out.println(TYPESTR);
-        return res;
+        return new ConstDef(token, list, ConstInitVal.parse(state));
     }
 
     public static final String TYPESTR = "<ConstDef>";

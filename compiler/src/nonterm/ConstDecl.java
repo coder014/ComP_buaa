@@ -2,6 +2,7 @@ package nonterm;
 
 import compiler.ParseState;
 import compiler.Token;
+import symbol.CompError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,18 +21,21 @@ public class ConstDecl {
 
     public static ConstDecl parse(ParseState state) {
         final ConstDecl res;
-        System.out.println(state.getCurToken());
         state.nextToken();
         res = new ConstDecl(BType.parse(state));
         res.appendDef(ConstDef.parse(state));
         while (state.getCurToken().getType() == Token.Type.COMMA) {
-            System.out.println(state.getCurToken());
             state.nextToken();
             res.appendDef(ConstDef.parse(state));
         }
-        System.out.println(state.getCurToken());
-        state.nextToken();
-        System.out.println(TYPESTR);
+        if (state.getCurToken().getType() == Token.Type.SEMICN) {
+            state.nextToken();
+        } else {
+            state.ungetToken();
+            final var lastToken = state.getCurToken();
+            state.nextToken();
+            CompError.appendError(lastToken.getLineNum(), 'i', "Missing `;` after token " + lastToken.getValue());
+        }
         return res;
     }
 

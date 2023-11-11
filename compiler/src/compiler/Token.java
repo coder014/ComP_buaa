@@ -19,6 +19,10 @@ public class Token {
         return value;
     }
 
+    public int getLineNum() {
+        return lineNum;
+    }
+
     @Override
     public String toString() {
         if (type == Type.STRCON)

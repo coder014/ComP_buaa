@@ -26,15 +26,12 @@ public class RelExp {
                 || state.getCurToken().getType() == Token.Type.GRE
                 || state.getCurToken().getType() == Token.Type.LEQ
                 || state.getCurToken().getType() == Token.Type.GEQ) {
-            System.out.println(TYPESTR);
-            Token op = state.getCurToken();
-            System.out.println(op);
-            state.nextToken();
+                        Token op = state.getCurToken();
+                        state.nextToken();
             AddExp anoExp = AddExp.parse(state);
             res = new RelExp(res, op, anoExp);
         }
-        System.out.println(TYPESTR);
-        return res;
+                return res;
     }
 
     public static final String TYPESTR = "<RelExp>";

@@ -16,15 +16,12 @@ public class Block {
     }
 
     public static Block parse(ParseState state) {
-        System.out.println(state.getCurToken());
         state.nextToken();
         final var res = new Block();
         while (state.getCurToken().getType() != Token.Type.RBRACE) {
             res.appendItem(BlockItem.parse(state));
         }
-        System.out.println(state.getCurToken());
         state.nextToken();
-        System.out.println(TYPESTR);
         return res;
     }
 

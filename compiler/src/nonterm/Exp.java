@@ -11,8 +11,7 @@ public class Exp {
 
     public static Exp parse(ParseState state) {
         var res = new Exp(AddExp.parse(state));
-        System.out.println(TYPESTR);
-        return res;
+                return res;
     }
 
     public static final String TYPESTR = "<Exp>";

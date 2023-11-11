@@ -13,11 +13,9 @@ public class ForStmt {
 
     public static ForStmt parse(ParseState state) {
         LVal t = LVal.parse(state);
-        System.out.println(state.getCurToken());
-        state.nextToken();
+                state.nextToken();
         final var res = new ForStmt(t, Exp.parse(state));
-        System.out.println(TYPESTR);
-        return res;
+                return res;
     }
 
     public static final String TYPESTR = "<ForStmt>";

@@ -23,14 +23,11 @@ public class AddExp {
         AddExp res = new AddExp(MulExp.parse(state));
         while (state.getCurToken().getType() == Token.Type.PLUS
                 || state.getCurToken().getType() == Token.Type.MINU) {
-            System.out.println(TYPESTR);
             Token op = state.getCurToken();
-            System.out.println(op);
             state.nextToken();
             MulExp anoExp = MulExp.parse(state);
             res = new AddExp(res, op, anoExp);
         }
-        System.out.println(TYPESTR);
         return res;
     }
 

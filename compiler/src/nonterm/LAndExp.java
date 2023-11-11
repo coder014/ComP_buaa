@@ -21,14 +21,11 @@ public class LAndExp {
     public static LAndExp parse(ParseState state) {
         LAndExp res = new LAndExp(EqExp.parse(state));
         while (state.getCurToken().getType() == Token.Type.AND) {
-            System.out.println(TYPESTR);
-            System.out.println(state.getCurToken());
-            state.nextToken();
+                                    state.nextToken();
             EqExp anoExp = EqExp.parse(state);
             res = new LAndExp(res, anoExp);
         }
-        System.out.println(TYPESTR);
-        return res;
+                return res;
     }
 
     public static final String TYPESTR = "<LAndExp>";

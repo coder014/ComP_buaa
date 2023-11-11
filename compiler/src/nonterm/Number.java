@@ -12,9 +12,7 @@ public class Number {
 
     public static Number parse(ParseState state) {
         var res = new Number(state.getCurToken());
-        System.out.println(state.getCurToken());
-        System.out.println(TYPESTR);
-        state.nextToken();
+                        state.nextToken();
         return res;
     }
 

@@ -2,6 +2,7 @@ package nonterm;
 
 import compiler.ParseState;
 import compiler.Token;
+import symbol.CompError;
 
 public class UnaryExp {
     private final PrimaryExp pExp;
@@ -50,24 +51,29 @@ public class UnaryExp {
                 res = new UnaryExp(PrimaryExp.parse(state));
             }
         }
-        System.out.println(TYPESTR);
         return res;
     }
 
     private static UnaryExp parseFuncCall(ParseState state) {
         final UnaryExp res;
         final var ident = state.getCurToken();
-        System.out.println(ident);
         state.nextToken();
-        System.out.println(state.getCurToken());
         state.nextToken();
-        if (state.getCurToken().getType() != Token.Type.RPARENT) {
+        if (state.getCurToken().getType() == Token.Type.IDENFR
+                || state.getCurToken().getType() == Token.Type.PLUS
+                || state.getCurToken().getType() == Token.Type.MINU
+                || state.getCurToken().getType() == Token.Type.NOT
+                || state.getCurToken().getType() == Token.Type.LPARENT
+                || state.getCurToken().getType() == Token.Type.INTCON) {
             res = new UnaryExp(ident, FuncRParams.parse(state));
+        } else res = new UnaryExp(ident, null);
+        if (state.getCurToken().getType() == Token.Type.RPARENT) {
+            state.nextToken();
         } else {
-            res = new UnaryExp(ident, null);
+            state.ungetToken();
+            CompError.appendError(state.getCurToken().getLineNum(), 'j', "Missing `)` as FuncCall()");
+            state.nextToken();
         }
-        System.out.println(state.getCurToken());
-        state.nextToken();
         return res;
     }
 

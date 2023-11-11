@@ -24,15 +24,12 @@ public class EqExp {
         EqExp res = new EqExp(RelExp.parse(state));
         while (state.getCurToken().getType() == Token.Type.EQL
                 || state.getCurToken().getType() == Token.Type.NEQ) {
-            System.out.println(TYPESTR);
-            Token op = state.getCurToken();
-            System.out.println(op);
-            state.nextToken();
+                        Token op = state.getCurToken();
+                        state.nextToken();
             RelExp anoExp = RelExp.parse(state);
             res = new EqExp(res, op, anoExp);
         }
-        System.out.println(TYPESTR);
-        return res;
+                return res;
     }
 
     public static final String TYPESTR = "<EqExp>";

@@ -12,9 +12,7 @@ public class UnaryOp {
 
     public static UnaryOp parse(ParseState state) {
         UnaryOp op = new UnaryOp(state.getCurToken());
-        System.out.println(state.getCurToken());
-        System.out.println(TYPESTR);
-        state.nextToken();
+                        state.nextToken();
         return op;
     }
 

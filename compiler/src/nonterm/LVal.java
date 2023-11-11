@@ -2,6 +2,7 @@ package nonterm;
 
 import compiler.ParseState;
 import compiler.Token;
+import symbol.CompError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,17 +21,19 @@ public class LVal {
 
     public static LVal parse(ParseState state) {
         var res = new LVal(state.getCurToken());
-        System.out.println(state.getCurToken());
         state.nextToken();
         while (state.getCurToken().getType() == Token.Type.LBRACK) {
-            System.out.println(state.getCurToken());
             state.nextToken();
             var anoExp = Exp.parse(state);
-            System.out.println(state.getCurToken());
-            state.nextToken();
             res.appendExp(anoExp);
+            if (state.getCurToken().getType() == Token.Type.RBRACK) {
+                state.nextToken();
+            } else {
+                state.ungetToken();
+                CompError.appendError(state.getCurToken().getLineNum(), 'k', "Missing `]` as LVal arr[]");
+                state.nextToken();
+            }
         }
-        System.out.println(TYPESTR);
         return res;
     }
 
