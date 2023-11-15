@@ -14,6 +14,10 @@ public class FuncRParams {
         exps.add(exp);
     }
 
+    public List<Exp> getExps() {
+        return exps;
+    }
+
     private void appendExp(Exp exp) {
         exps.add(exp);
     }
@@ -21,10 +25,10 @@ public class FuncRParams {
     public static FuncRParams parse(ParseState state) {
         final FuncRParams res = new FuncRParams(Exp.parse(state));
         while (state.getCurToken().getType() == Token.Type.COMMA) {
-                        state.nextToken();
+            state.nextToken();
             res.appendExp(Exp.parse(state));
         }
-                return res;
+        return res;
     }
 
     public static final String TYPESTR = "<FuncRParams>";

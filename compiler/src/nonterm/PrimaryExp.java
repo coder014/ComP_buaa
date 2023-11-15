@@ -24,12 +24,22 @@ public class PrimaryExp {
         this.number = number;
     }
 
+    public Exp getExp() {
+        return exp;
+    }
+    public LVal getLVal() {
+        return lVal;
+    }
+    public Number getNumber() {
+        return number;
+    }
+
     public static PrimaryExp parse(ParseState state) {
         final PrimaryExp res;
         if (state.getCurToken().getType() == Token.Type.LPARENT) {
-                        state.nextToken();
+            state.nextToken();
             res = new PrimaryExp(Exp.parse(state));
-                        state.nextToken();
+            state.nextToken();
         } else if (state.getCurToken().getType() == Token.Type.IDENFR) {
             res = new PrimaryExp(LVal.parse(state));
         } else {

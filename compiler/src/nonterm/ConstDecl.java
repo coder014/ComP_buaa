@@ -15,6 +15,13 @@ public class ConstDecl {
         this.type = type;
     }
 
+    public BType getType() {
+        return type;
+    }
+    public List<ConstDef> getDefs() {
+        return defs;
+    }
+
     private void appendDef(ConstDef def) {
         defs.add(def);
     }

@@ -19,6 +19,16 @@ public class AddExp {
         this.exp3 = exp;
     }
 
+    public AddExp getLExp() {
+        return exp1;
+    }
+    public Token getOp() {
+        return op2;
+    }
+    public MulExp getRExp() {
+        return exp3;
+    }
+
     public static AddExp parse(ParseState state) {
         AddExp res = new AddExp(MulExp.parse(state));
         while (state.getCurToken().getType() == Token.Type.PLUS

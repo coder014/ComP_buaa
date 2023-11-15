@@ -69,6 +69,17 @@ public class Utils {
         System.exit(-1);
     }
 
+    public static int substrCount(String str, String sub) {
+        int count = 0;
+        final int sublen = sub.length();
+        int index = str.indexOf(sub);
+        while (index != -1) {
+            count++;
+            index = str.indexOf(sub, index + sublen);
+        }
+        return count;
+    }
+
     public enum LogLevel {
         DEBUG, INFO, WARN, ERROR
     }

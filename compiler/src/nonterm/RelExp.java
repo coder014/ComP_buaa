@@ -13,11 +13,20 @@ public class RelExp {
         this.op2 = op2;
         this.exp3 = exp3;
     }
-
     private RelExp(AddExp exp) {
         this.exp1 = null;
         this.op2 = null;
         this.exp3 = exp;
+    }
+
+    public RelExp getLExp() {
+        return exp1;
+    }
+    public Token getOp() {
+        return op2;
+    }
+    public AddExp getRExp() {
+        return exp3;
     }
 
     public static RelExp parse(ParseState state) {
@@ -26,12 +35,12 @@ public class RelExp {
                 || state.getCurToken().getType() == Token.Type.GRE
                 || state.getCurToken().getType() == Token.Type.LEQ
                 || state.getCurToken().getType() == Token.Type.GEQ) {
-                        Token op = state.getCurToken();
-                        state.nextToken();
+            Token op = state.getCurToken();
+            state.nextToken();
             AddExp anoExp = AddExp.parse(state);
             res = new RelExp(res, op, anoExp);
         }
-                return res;
+        return res;
     }
 
     public static final String TYPESTR = "<RelExp>";

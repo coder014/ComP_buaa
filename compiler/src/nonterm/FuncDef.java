@@ -17,6 +17,19 @@ public class FuncDef {
         this.block = block;
     }
 
+    public Token getType() {
+        return type.getfType();
+    }
+    public Token getIdent() {
+        return ident;
+    }
+    public FuncFParams getParams() {
+        return params;
+    }
+    public Block getBlock() {
+        return block;
+    }
+
     public static FuncDef parse(ParseState state) {
         final var t1 = FuncType.parse(state);
         final var t2 = state.getCurToken();

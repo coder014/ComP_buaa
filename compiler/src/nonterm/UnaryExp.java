@@ -11,6 +11,22 @@ public class UnaryExp {
     private final Token ident;
     private final FuncRParams params;
 
+    public PrimaryExp getPExp() {
+        return pExp;
+    }
+    public UnaryOp getUOp() {
+        return uOp;
+    }
+    public UnaryExp getUExp() {
+        return uExp;
+    }
+    public Token getIdent() {
+        return ident;
+    }
+    public FuncRParams getRParams() {
+        return params;
+    }
+
     private UnaryExp(PrimaryExp pExp) {
         this.pExp = pExp;
         this.uOp = null;

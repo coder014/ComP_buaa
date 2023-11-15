@@ -19,6 +19,16 @@ public class MulExp {
         this.exp3 = exp;
     }
 
+    public MulExp getLExp() {
+        return exp1;
+    }
+    public Token getOp() {
+        return op2;
+    }
+    public UnaryExp getRExp() {
+        return exp3;
+    }
+
     public static MulExp parse(ParseState state) {
         MulExp res = new MulExp(UnaryExp.parse(state));
         while (state.getCurToken().getType() == Token.Type.MULT

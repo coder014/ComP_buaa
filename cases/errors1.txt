@@ -1,0 +1,7 @@
+int f(int a) {
+   f(a, a);
+return 0;
+}
+int main(){
+    return 0;
+}

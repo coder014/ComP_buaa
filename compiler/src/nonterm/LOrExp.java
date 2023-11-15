@@ -12,20 +12,26 @@ public class LOrExp {
         this.exp1 = exp1;
         this.exp2 = exp2;
     }
-
     private LOrExp(LAndExp exp) {
         this.exp1 = null;
         this.exp2 = exp;
     }
 
+    public LOrExp getLExp() {
+        return exp1;
+    }
+    public LAndExp getRExp() {
+        return exp2;
+    }
+
     public static LOrExp parse(ParseState state) {
         LOrExp res = new LOrExp(LAndExp.parse(state));
         while (state.getCurToken().getType() == Token.Type.OR) {
-                                    state.nextToken();
+            state.nextToken();
             LAndExp anoExp = LAndExp.parse(state);
             res = new LOrExp(res, anoExp);
         }
-                return res;
+        return res;
     }
 
     public static final String TYPESTR = "<LOrExp>";

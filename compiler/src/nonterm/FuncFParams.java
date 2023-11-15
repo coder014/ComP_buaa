@@ -14,6 +14,10 @@ public class FuncFParams {
         params.add(param);
     }
 
+    public List<FuncFParam> getParamList() {
+        return params;
+    }
+
     private void appendParam(FuncFParam param) {
         params.add(param);
     }

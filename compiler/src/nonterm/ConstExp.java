@@ -8,10 +8,12 @@ public class ConstExp {
     private ConstExp(AddExp exp) {
         this.exp = exp;
     }
+    public AddExp getExp() {
+        return exp;
+    }
 
     public static ConstExp parse(ParseState state) {
-        var res = new ConstExp(AddExp.parse(state));
-                return res;
+        return new ConstExp(AddExp.parse(state));
     }
 
     public static final String TYPESTR = "<ConstExp>";

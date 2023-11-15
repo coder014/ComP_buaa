@@ -9,9 +9,12 @@ public class Exp {
         this.exp = exp;
     }
 
+    public AddExp getExp() {
+        return exp;
+    }
+
     public static Exp parse(ParseState state) {
-        var res = new Exp(AddExp.parse(state));
-                return res;
+        return new Exp(AddExp.parse(state));
     }
 
     public static final String TYPESTR = "<Exp>";

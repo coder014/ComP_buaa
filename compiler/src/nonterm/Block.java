@@ -7,22 +7,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Block {
-    private final List<BlockItem> items = new ArrayList<>();
+    private final List<BlockItem> items;
+    private final int endingLine;
 
-    private Block() {}
+    private Block(List<BlockItem> items, int endingLine) {
+        this.items = items;
+        this.endingLine = endingLine;
+    }
 
-    private void appendItem(BlockItem item) {
-        items.add(item);
+    public List<BlockItem> getItems() {
+        return items;
+    }
+    public int getEndingLineNum() {
+        return endingLine;
     }
 
     public static Block parse(ParseState state) {
+        final var items = new ArrayList<BlockItem>();
         state.nextToken();
-        final var res = new Block();
         while (state.getCurToken().getType() != Token.Type.RBRACE) {
-            res.appendItem(BlockItem.parse(state));
+            items.add(BlockItem.parse(state));
         }
+        final var ending = state.getCurToken().getLineNum();
         state.nextToken();
-        return res;
+        return new Block(items, ending);
     }
 
     public static final String TYPESTR = "<Block>";

@@ -21,6 +21,16 @@ public class FuncFParam {
         exps.add(exp);
     }
 
+    public BType getType() {
+        return type;
+    }
+    public Token getIdent() {
+        return ident;
+    }
+    public List<ConstExp> getExps() {
+        return exps;
+    }
+
     public static FuncFParam parse(ParseState state) {
         final var bType = BType.parse(state);
         final FuncFParam res = new FuncFParam(bType, state.getCurToken());

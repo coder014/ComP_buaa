@@ -18,6 +18,16 @@ public class VarDef {
         this.val = val;
     }
 
+    public Token getIdent() {
+        return ident;
+    }
+    public List<ConstExp> getExps() {
+        return exps;
+    }
+    public InitVal getVal() {
+        return val;
+    }
+
     public static VarDef parse(ParseState state) {
         final VarDef res;
         final Token token = state.getCurToken();

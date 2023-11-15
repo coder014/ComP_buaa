@@ -25,74 +25,125 @@ public class Stmt {
     private final LVal lVal8;
     private final Token fmtStr9;
     private final List<Exp> exps9;
-    private final boolean isReturn;
+    private final int lexType;
+    private final Token extraToken; // for printf or return
 
     private Stmt(LVal lVal1, Exp exp1) {
-        this.lVal1 = lVal1;
-        this.exp1 = exp1;
-        exp2=null;block3=null;cond4=null;isReturn=false;
+        this.lexType = 1;this.lVal1 = lVal1;this.exp1 = exp1;
+        exp2=null;block3=null;cond4=null;this.extraToken=null;
         ifStmt4=null;elseStmt4=null;initStmt5=null;
         cond5=null;loopStmt5=null;stmt5=null;bOrC=null;
         exp7=null;lVal8=null;fmtStr9=null;exps9=null;
     }
-    private Stmt(boolean isReturn, Exp exp) {
-        if (isReturn) {
-            this.exp7 = exp;
-            this.exp2 = null;
-        } else {
-            this.exp2 = exp;
-            this.exp7 = null;
-        }
-        this.isReturn = isReturn;
+    private Stmt(Exp exp) {
+        this.exp2 = exp;this.exp7 = null;this.lexType = 2;
         lVal1=null;exp1=null;block3=null;cond4=null;
         ifStmt4=null;elseStmt4=null;initStmt5=null;
         cond5=null;loopStmt5=null;stmt5=null;bOrC=null;
-        lVal8=null;fmtStr9=null;exps9=null;
+        lVal8=null;fmtStr9=null;exps9=null;this.extraToken=null;
     }
     private Stmt(Block block3) {
-        this.block3 = block3;
+        this.lexType = 3;this.block3 = block3;this.extraToken=null;
         lVal1=null;exp1=null;exp2=null;cond4=null;
         ifStmt4=null;elseStmt4=null;initStmt5=null;
         cond5=null;loopStmt5=null;stmt5=null;bOrC=null;
-        exp7=null;lVal8=null;fmtStr9=null;exps9=null;isReturn=false;
+        exp7=null;lVal8=null;fmtStr9=null;exps9=null;
     }
     private Stmt(Cond cond4, Stmt ifStmt4, Stmt elseStmt4) {
-        this.cond4 = cond4;
-        this.ifStmt4 = ifStmt4;
-        this.elseStmt4 = elseStmt4;
+        this.lexType = 4;this.cond4 = cond4;this.ifStmt4 = ifStmt4;
+        this.elseStmt4 = elseStmt4;this.extraToken=null;
         lVal1=null;exp1=null;exp2=null;block3=null;initStmt5=null;
         cond5=null;loopStmt5=null;stmt5=null;bOrC=null;
-        exp7=null;lVal8=null;fmtStr9=null;exps9=null;isReturn=false;
+        exp7=null;lVal8=null;fmtStr9=null;exps9=null;
     }
     private Stmt(ForStmt initStmt5, Cond cond5, ForStmt loopStmt5, Stmt stmt5) {
-        this.initStmt5 = initStmt5;
-        this.cond5 = cond5;
-        this.loopStmt5 = loopStmt5;
-        this.stmt5 = stmt5;
+        this.lexType = 5;this.initStmt5 = initStmt5;this.cond5 = cond5;
+        this.loopStmt5 = loopStmt5;this.stmt5 = stmt5;
         lVal1=null;exp1=null;exp2=null;block3=null;cond4=null;
-        ifStmt4=null;elseStmt4=null;bOrC=null;isReturn=false;
+        ifStmt4=null;elseStmt4=null;bOrC=null;this.extraToken=null;
         exp7=null;lVal8=null;fmtStr9=null;exps9=null;
     }
     private Stmt(Token bOrC) {
-        this.bOrC = bOrC;
+        this.lexType = 6;this.bOrC = bOrC;
         lVal1=null;exp1=null;exp2=null;block3=null;cond4=null;
         ifStmt4=null;elseStmt4=null;initStmt5=null;
-        cond5=null;loopStmt5=null;stmt5=null;isReturn=false;
+        cond5=null;loopStmt5=null;stmt5=null;this.extraToken=null;
         exp7=null;lVal8=null;fmtStr9=null;exps9=null;
     }
+    private Stmt(Token ret, Exp exp) {
+        this.exp7 = exp;this.exp2 = null;this.lexType = 7;
+        lVal1=null;exp1=null;block3=null;cond4=null;
+        ifStmt4=null;elseStmt4=null;initStmt5=null;
+        cond5=null;loopStmt5=null;stmt5=null;bOrC=null;
+        lVal8=null;fmtStr9=null;exps9=null;this.extraToken=ret;
+    }
     private Stmt(LVal lVal8) {
-        this.lVal8 = lVal8;
+        this.lexType = 8;this.lVal8 = lVal8;
         lVal1=null;exp1=null;exp2=null;block3=null;cond4=null;
         ifStmt4=null;elseStmt4=null;initStmt5=null;
         cond5=null;loopStmt5=null;stmt5=null;bOrC=null;
-        exp7=null;fmtStr9=null;exps9=null;isReturn=false;
+        exp7=null;fmtStr9=null;exps9=null;this.extraToken=null;
     }
-    private Stmt(Token fmtStr9, List<Exp> exps9) {
-        this.fmtStr9 = fmtStr9;
-        this.exps9 = exps9;
+    private Stmt(Token print, Token fmtStr9, List<Exp> exps9) {
+        this.lexType = 9;this.fmtStr9 = fmtStr9;this.exps9 = exps9;
         lVal1=null;exp1=null;exp2=null;block3=null;cond4=null;
-        ifStmt4=null;elseStmt4=null;initStmt5=null;isReturn=false;
+        ifStmt4=null;elseStmt4=null;initStmt5=null;this.extraToken=print;
         cond5=null;loopStmt5=null;stmt5=null;bOrC=null;exp7=null;lVal8=null;
+    }
+
+    public LVal getLVal1() {
+        return lVal1;
+    }
+    public Exp getExp1() {
+        return exp1;
+    }
+    public Exp getExp2() {
+        return exp2;
+    }
+    public Block getBlock() {
+        return block3;
+    }
+    public Cond getCond4() {
+        return cond4;
+    }
+    public Stmt getIfStmt() {
+        return ifStmt4;
+    }
+    public Stmt getElseStmt() {
+        return elseStmt4;
+    }
+    public ForStmt getInitStmt() {
+        return initStmt5;
+    }
+    public Cond getCond5() {
+        return cond5;
+    }
+    public ForStmt getLoopStmt() {
+        return loopStmt5;
+    }
+    public Stmt getStmt5() {
+        return stmt5;
+    }
+    public Token getbOrC() {
+        return bOrC;
+    }
+    public Exp getExp7() {
+        return exp7;
+    }
+    public LVal getLVal8() {
+        return lVal8;
+    }
+    public String getFmtStr() {
+        return fmtStr9.getValue();
+    }
+    public List<Exp> getExps9() {
+        return exps9;
+    }
+    public int getLexType() {
+        return lexType;
+    }
+    public Token getExtraToken() {
+        return extraToken;
     }
 
     public static Stmt parse(ParseState state) {
@@ -143,6 +194,7 @@ public class Stmt {
                 CompError.appendError(lineNum, 'i', "Missing `;` after token break/continue");
             }
         } else if (state.getCurToken().getType() == Token.Type.RETURNTK) {
+            final var ret = state.getCurToken();
             state.nextToken();
             if (state.getCurToken().getType() == Token.Type.IDENFR
                     || state.getCurToken().getType() == Token.Type.PLUS
@@ -150,8 +202,8 @@ public class Stmt {
                     || state.getCurToken().getType() == Token.Type.NOT
                     || state.getCurToken().getType() == Token.Type.LPARENT
                     || state.getCurToken().getType() == Token.Type.INTCON) {
-                res = new Stmt(true, Exp.parse(state));
-            } else res = new Stmt(true, null);
+                res = new Stmt(ret, Exp.parse(state));
+            } else res = new Stmt(ret, null);
             if (state.getCurToken().getType() == Token.Type.SEMICN) {
                 state.nextToken();
             } else {
@@ -160,6 +212,7 @@ public class Stmt {
                 state.nextToken();
             }
         } else if (state.getCurToken().getType() == Token.Type.PRINTFTK) {
+            final var print = state.getCurToken();
             state.nextToken();
             state.nextToken();
             final var t1 = state.getCurToken();
@@ -167,8 +220,11 @@ public class Stmt {
             for (int i=0; i<fmtStr.length(); i++) {
                 var c = fmtStr.charAt(i);
                 if (c != 32 && c != 33 && (c < 40 || c > 126)) {
-                    CompError.appendError(t1.getLineNum(), 'a', fmtStr);
-                    break;
+                    if (c == '%' && i < fmtStr.length() - 1 && fmtStr.charAt(i+1) == 'd') i++;
+                    else {
+                        CompError.appendError(t1.getLineNum(), 'a', fmtStr);
+                        break;
+                    }
                 } else if (c == '\\' && (i+1 >= fmtStr.length() || fmtStr.charAt(i+1) != 'n')) {
                     CompError.appendError(t1.getLineNum(), 'a', fmtStr);
                     break;
@@ -180,7 +236,7 @@ public class Stmt {
                 state.nextToken();
                 t2.add(Exp.parse(state));
             }
-            res = new Stmt(t1, t2);
+            res = new Stmt(print, t1, t2);
             if (state.getCurToken().getType() == Token.Type.RPARENT) {
                 state.nextToken();
             } else {
@@ -200,18 +256,18 @@ public class Stmt {
                 || state.getCurToken().getType() == Token.Type.PLUS
                 || state.getCurToken().getType() == Token.Type.MINU
                 || state.getCurToken().getType() == Token.Type.NOT) {
-            res = new Stmt(false, Exp.parse(state));
+            res = new Stmt(Exp.parse(state));
             state.nextToken();
-        } else if (state.getCurToken().getType() == Token.Type.SEMICN) {
-            res = new Stmt(false, null);
+        } else if (state.getCurToken().getType() == Token.Type.SEMICN) { // rule 2, empty Exp
+            res = new Stmt((Exp)null);
             state.nextToken();
         } else { // IDENT, may be rule 1, 2 or 8
             final Token t1, t2;
             t1 = state.getCurToken(); state.nextToken();
             t2 = state.getCurToken(); state.ungetToken();
-            if (t1.getType() == Token.Type.IDENFR // rule 2
-                    && t2.getType() == Token.Type.LPARENT) {
-                res = new Stmt(false, Exp.parse(state));
+            if (t1.getType() == Token.Type.IDENFR
+                    && t2.getType() == Token.Type.LPARENT) { // rule 2
+                res = new Stmt(Exp.parse(state));
                 if (state.getCurToken().getType() == Token.Type.SEMICN) {
                     state.nextToken();
                 } else {
@@ -258,7 +314,7 @@ public class Stmt {
                     }
                 } else { // rule 2
                     state.doneRecovery();
-                    res = new Stmt(false, Exp.parse(state));
+                    res = new Stmt(Exp.parse(state));
                     if (state.getCurToken().getType() == Token.Type.SEMICN) {
                         state.nextToken();
                     } else {

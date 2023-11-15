@@ -13,23 +13,32 @@ public class EqExp {
         this.op2 = op2;
         this.exp3 = exp3;
     }
-
     private EqExp(RelExp exp) {
         this.exp1 = null;
         this.op2 = null;
         this.exp3 = exp;
     }
 
+    public EqExp getLExp() {
+        return exp1;
+    }
+    public Token getOp() {
+        return op2;
+    }
+    public RelExp getRExp() {
+        return exp3;
+    }
+
     public static EqExp parse(ParseState state) {
         EqExp res = new EqExp(RelExp.parse(state));
         while (state.getCurToken().getType() == Token.Type.EQL
                 || state.getCurToken().getType() == Token.Type.NEQ) {
-                        Token op = state.getCurToken();
-                        state.nextToken();
+            Token op = state.getCurToken();
+            state.nextToken();
             RelExp anoExp = RelExp.parse(state);
             res = new EqExp(res, op, anoExp);
         }
-                return res;
+        return res;
     }
 
     public static final String TYPESTR = "<EqExp>";

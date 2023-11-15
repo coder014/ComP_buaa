@@ -15,6 +15,13 @@ public class LVal {
         this.ident = ident;
     }
 
+    public Token getIdent() {
+        return ident;
+    }
+    public List<Exp> getExps() {
+        return exps;
+    }
+
     private void appendExp(Exp exp) {
         exps.add(exp);
     }

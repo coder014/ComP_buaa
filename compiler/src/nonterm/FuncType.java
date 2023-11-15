@@ -10,10 +10,14 @@ public class FuncType {
         this.fType = fType;
     }
 
+    public Token getfType() {
+        return fType;
+    }
+
     public static FuncType parse(ParseState state) {
         final var res = new FuncType(state.getCurToken());
-                state.nextToken();
-                return res;
+        state.nextToken();
+        return res;
     }
 
     public static final String TYPESTR = "<FuncType>";

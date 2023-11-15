@@ -15,6 +15,13 @@ public class VarDecl {
         this.type = type;
     }
 
+    public BType getType() {
+        return type;
+    }
+    public List<VarDef> getDefs() {
+        return defs;
+    }
+
     private void appendDef(VarDef def) {
         defs.add(def);
     }

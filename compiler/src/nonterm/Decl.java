@@ -26,5 +26,12 @@ public class Decl {
         return res;
     }
 
+    public ConstDecl getConstDecl() {
+        return constDecl;
+    }
+    public VarDecl getVarDecl() {
+        return varDecl;
+    }
+
     public static final String TYPESTR = "<Decl>";
 }

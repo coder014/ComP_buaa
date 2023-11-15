@@ -9,9 +9,12 @@ public class Cond {
         this.exp = exp;
     }
 
+    public LOrExp getExp() {
+        return exp;
+    }
+
     public static Cond parse(ParseState state) {
-        var res = new Cond(LOrExp.parse(state));
-                return res;
+        return new Cond(LOrExp.parse(state));
     }
 
     public static final String TYPESTR = "<Cond>";

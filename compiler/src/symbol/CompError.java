@@ -2,6 +2,8 @@ package symbol;
 
 import compiler.Utils;
 
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -17,14 +19,6 @@ public class CompError {
         this.lineNum = lineNum;
         this.type = type;
         this.description = description;
-    }
-
-    public int getLineNum() {
-        return lineNum;
-    }
-
-    public char getType() {
-        return type;
     }
 
     public String getDescription() {
@@ -43,8 +37,20 @@ public class CompError {
 
     public static void printErrors() {
         errorList.sort(Comparator.comparingInt(o -> o.lineNum));
+        PrintStream out = null;
+        try {
+            out = new PrintStream("error.txt");
+        } catch (FileNotFoundException ignored) {}
+        int lastLine = 0;
         for (var err : errorList) {
-            System.out.println(err);
+            if (lastLine != err.lineNum) {
+                out.println(err);
+                lastLine = err.lineNum;
+            }
         }
+    }
+
+    public static boolean hasError() {
+        return !errorList.isEmpty();
     }
 }

@@ -16,6 +16,13 @@ public class BlockItem {
         this.decl = null;
     }
 
+    public Decl getDecl() {
+        return decl;
+    }
+    public Stmt getStmt() {
+        return stmt;
+    }
+
     public static BlockItem parse(ParseState state) {
         if (state.getCurToken().getType() == Token.Type.INTTK
                 || state.getCurToken().getType() == Token.Type.CONSTTK) {

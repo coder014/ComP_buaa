@@ -17,6 +17,16 @@ public class CompUnit {
         this.mainFunc = mainFunc;
     }
 
+    public List<Decl> getDecls() {
+        return decls;
+    }
+    public List<FuncDef> getFuncDefs() {
+        return funcDefs;
+    }
+    public MainFuncDef getMainFunc() {
+        return mainFunc;
+    }
+
     private void appendDecl(Decl decl) {
         decls.add(decl);
     }
@@ -32,8 +42,7 @@ public class CompUnit {
             t1.add(Decl.parse(state));
         while (predictDefType(state) == DefType.FUNCDEF)
             t2.add(FuncDef.parse(state));
-        final var res = new CompUnit(t1, t2, MainFuncDef.parse(state));
-                return res;
+        return new CompUnit(t1, t2, MainFuncDef.parse(state));
     }
 
     private static DefType predictDefType(ParseState state) {

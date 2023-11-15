@@ -11,11 +11,17 @@ public class ForStmt {
         this.exp = exp;
     }
 
+    public LVal getLVal() {
+        return lVal;
+    }
+    public Exp getExp() {
+        return exp;
+    }
+
     public static ForStmt parse(ParseState state) {
         LVal t = LVal.parse(state);
-                state.nextToken();
-        final var res = new ForStmt(t, Exp.parse(state));
-                return res;
+        state.nextToken();
+        return new ForStmt(t, Exp.parse(state));
     }
 
     public static final String TYPESTR = "<ForStmt>";

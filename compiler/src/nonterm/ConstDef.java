@@ -18,6 +18,16 @@ public class ConstDef {
         this.val = val;
     }
 
+    public Token getIdent() {
+        return ident;
+    }
+    public List<ConstExp> getExps() {
+        return exps;
+    }
+    public ConstInitVal getVal() {
+        return val;
+    }
+
     public static ConstDef parse(ParseState state) {
         final Token token = state.getCurToken();
         final List<ConstExp> list = new ArrayList<>();

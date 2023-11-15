@@ -30,8 +30,10 @@ public class SymbolTable {
         return curTable;
     }
 
-    public void appendSymbolToCurrent(Symbol symbol) {
+    public boolean appendSymbol(Symbol symbol) {
+        if (symbols.containsKey(symbol.getName())) return false;
         symbols.put(symbol.getName(), symbol);
+        return true;
     }
 
     public static Symbol getSymbolByName(String name) {

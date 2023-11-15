@@ -11,6 +11,23 @@ public class SymbolType {
     private final boolean isConst;
     private final List<SymbolType> params;
 
+    public Category getCategory() {
+        return category;
+    }
+    public boolean isConst() {
+        return isConst;
+    }
+    public List<SymbolType> getParams() {
+        return params;
+    }
+    public int getDimension() {
+        if (category == Category.ARRAY) return arrSizes.size();
+        else return 0;
+    }
+    public Token.Type getRetType() {
+        return bType;
+    }
+
     public enum Category {
         BASIC, ARRAY, FUNC
     }

@@ -11,6 +11,10 @@ public class MainFuncDef {
         this.block = block;
     }
 
+    public Block getBlock() {
+        return block;
+    }
+
     public static MainFuncDef parse(ParseState state) {
         state.nextToken();
         state.nextToken();

@@ -12,20 +12,26 @@ public class LAndExp {
         this.exp1 = exp1;
         this.exp2 = exp2;
     }
-
     private LAndExp(EqExp exp) {
         this.exp1 = null;
         this.exp2 = exp;
     }
 
+    public LAndExp getLExp() {
+        return exp1;
+    }
+    public EqExp getRExp() {
+        return exp2;
+    }
+
     public static LAndExp parse(ParseState state) {
         LAndExp res = new LAndExp(EqExp.parse(state));
         while (state.getCurToken().getType() == Token.Type.AND) {
-                                    state.nextToken();
+            state.nextToken();
             EqExp anoExp = EqExp.parse(state);
             res = new LAndExp(res, anoExp);
         }
-                return res;
+        return res;
     }
 
     public static final String TYPESTR = "<LAndExp>";
