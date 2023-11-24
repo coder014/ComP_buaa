@@ -1,6 +1,5 @@
 package compiler;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,6 +10,7 @@ public class Utils {
     private static LogLevel logLevel = LogLevel.INFO;
     private static PrintStream originOutStream;
     private static ByteArrayOutputStream bufferStream;
+    private static int counter = -1;
 
    /* public static void freezeOutput() {
         originOutStream = System.out;
@@ -27,6 +27,16 @@ public class Utils {
     public static void discardOutput() {
         bufferStream = null;
     }*/
+
+    public static void resetCounter() {
+        counter = -1;
+    }
+    public static int getIncCounter() {
+        return ++counter;
+    }
+    public static int getCounter() {
+        return counter;
+    }
 
     public static PushbackInputStream getFileAsStream(String filename) {
         try {

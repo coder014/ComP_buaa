@@ -33,6 +33,7 @@ public class SymbolTable {
     public boolean appendSymbol(Symbol symbol) {
         if (symbols.containsKey(symbol.getName())) return false;
         symbols.put(symbol.getName(), symbol);
+        symbol.setSymbolTable(this);
         return true;
     }
 
@@ -47,5 +48,9 @@ public class SymbolTable {
             table = table.father;
         }
         return res;
+    }
+
+    public boolean isRoot() {
+        return father == null;
     }
 }

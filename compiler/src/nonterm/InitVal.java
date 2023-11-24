@@ -14,6 +14,13 @@ public class InitVal {
         this.exp = exp;
     }
 
+    public Exp getExp() {
+        return exp;
+    }
+    public List<InitVal> getVals() {
+        return vals;
+    }
+
     private void appendVal(InitVal val) {
         vals.add(val);
     }

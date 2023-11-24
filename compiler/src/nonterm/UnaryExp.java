@@ -14,8 +14,8 @@ public class UnaryExp {
     public PrimaryExp getPExp() {
         return pExp;
     }
-    public UnaryOp getUOp() {
-        return uOp;
+    public Token getUOp() {
+        return uOp.getOp();
     }
     public UnaryExp getUExp() {
         return uExp;

@@ -34,8 +34,8 @@ public class MulExp {
         while (state.getCurToken().getType() == Token.Type.MULT
                 || state.getCurToken().getType() == Token.Type.DIV
                 || state.getCurToken().getType() == Token.Type.MOD) {
-                        Token op = state.getCurToken();
-                        state.nextToken();
+            Token op = state.getCurToken();
+            state.nextToken();
             UnaryExp anoExp = UnaryExp.parse(state);
             res = new MulExp(res, op, anoExp);
         }

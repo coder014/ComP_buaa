@@ -10,6 +10,10 @@ public class UnaryOp {
         this.op = op;
     }
 
+    public Token getOp() {
+        return op;
+    }
+
     public static UnaryOp parse(ParseState state) {
         UnaryOp op = new UnaryOp(state.getCurToken());
                         state.nextToken();

@@ -14,6 +14,13 @@ public class ConstInitVal {
         this.exp = exp;
     }
 
+    public ConstExp getExp() {
+        return exp;
+    }
+    public List<ConstInitVal> getVals() {
+        return vals;
+    }
+
     private void appendVal(ConstInitVal val) {
         vals.add(val);
     }
