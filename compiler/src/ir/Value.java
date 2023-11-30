@@ -3,9 +3,9 @@ package ir;
 import ir.type.ValueType;
 
 public class Value implements IRPrintable {
-    protected final String name;
+    protected String name;
     protected final ValueType type;
-    protected final int id;
+    protected int id;
 
     protected Value(String name, int id, ValueType type) {
         this.name = name;
@@ -34,5 +34,10 @@ public class Value implements IRPrintable {
     }
     public ValueType getValueType() {
         return type;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+        this.name = "V" + id;
     }
 }

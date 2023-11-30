@@ -12,6 +12,7 @@ public class IntType extends ValueType {
 
     @Override
     public void emitString(StringBuilder sb) {
-        sb.append("i32");
+        if (isLogical) sb.append("i1");
+        else sb.append("i32");
     }
 }

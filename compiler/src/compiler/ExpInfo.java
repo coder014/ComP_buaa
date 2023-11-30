@@ -8,24 +8,21 @@ public class ExpInfo {
     private final boolean isConst;
     private final boolean isBool;
     private final Integer value;
-    private final Boolean bool;
     private final Integer dimension;
     private final Value resIR;
 
-    protected ExpInfo(Integer value, Integer dimension) {
+    protected ExpInfo(boolean isBool, Integer value, Integer dimension) {
         this.isConst = value != null;
-        this.isBool = false;
+        this.isBool = isBool;
         this.value = value;
         this.dimension = dimension;
-        this.bool = false;
         this.resIR = value != null ? new IntConstant(value) : null;
     }
-    protected ExpInfo(Integer dimension, Instruction resIR) {
+    protected ExpInfo(boolean isBool, Integer dimension, Instruction resIR) {
         this.isConst = false;
-        this.isBool = false;
+        this.isBool = isBool;
         this.value = null;
         this.dimension = dimension;
-        this.bool = false;
         this.resIR = resIR;
     }
 
@@ -40,5 +37,8 @@ public class ExpInfo {
     }
     protected Integer getValue() {
         return value;
+    }
+    protected boolean isBool() {
+        return isBool;
     }
 }

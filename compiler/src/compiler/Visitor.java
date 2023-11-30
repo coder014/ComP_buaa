@@ -1,31 +1,15 @@
 package compiler;
 
-import ir.BasicBlock;
-import ir.FuncParam;
-import ir.Function;
-import ir.GlobalVar;
-import ir.IntConstant;
+import ir.*;
 import ir.Module;
-import ir.Value;
-import ir.instr.AllocaInstr;
-import ir.instr.ArithmeticInstr;
-import ir.instr.CallInstr;
-import ir.instr.Instruction;
-import ir.instr.LoadInstr;
-import ir.instr.RetInstr;
-import ir.instr.StoreInstr;
-import ir.type.FunctionType;
-import ir.type.IntType;
-import ir.type.ValueType;
-import ir.type.VoidType;
+import ir.instr.*;
+import ir.type.*;
 import nonterm.*;
-import symbol.CompError;
-import symbol.Symbol;
-import symbol.SymbolTable;
-import symbol.SymbolType;
+import symbol.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Visitor {
@@ -33,6 +17,20 @@ public class Visitor {
     private static boolean isVoidFunction = false;
     private static Function curIRFunction;
     private static BasicBlock curIRBasicBlock;
+    /*
+     * ifBBS stack overlay:
+     * -----------------------------------------------
+     * | NormalStmt | (ElseStmt) | IfStmt | ......
+     * -----------------------------------------------
+     *
+     * forBBS stack overlay:
+     * ------------------------------------------------------
+     * | Cond | (ForLoopStmt) | NormalStmt | Stmt | ......
+     * ------------------------------------------------------
+     */
+    private static final LinkedList<BasicBlock> ifBBS = new LinkedList<>(); // BBS is for BasicBlock Stack
+    private static final LinkedList<BasicBlock> forBBS = new LinkedList<>(); // BBS is for BasicBlock Stack
+    private static BasicBlock ifTrueBasicBlock, ifFalseBasicBlock;
     private static Value lValueIRRes;
     private static final Function exGetint = new Function("getint", new FunctionType(IntType.INT, List.of()));
     private static final Function exPutint = new Function("putint", new FunctionType(VoidType.INSTANCE, List.of(IntType.INT)));
@@ -244,14 +242,14 @@ public class Visitor {
             info2 = visitExp(node.getRExp()); // assuming dimension is equal
         }
         if (info1.isConst() && info2.isConst()) { // constant optimization
-            if (node.getOp().getType() == Token.Type.MINU) return new ExpInfo(info1.getValue() - info2.getValue(), info1.getDimension());
-            else return new ExpInfo(info1.getValue() + info2.getValue(), info1.getDimension());
+            if (node.getOp().getType() == Token.Type.MINU) return new ExpInfo(false, info1.getValue() - info2.getValue(), 0);
+            else return new ExpInfo(false, info1.getValue() + info2.getValue(), 0);
         } else {
             final ArithmeticInstr instr = new ArithmeticInstr(
                     node.getOp().getType() == Token.Type.MINU ? ArithmeticInstr.Type.SUB : ArithmeticInstr.Type.ADD,
                     Utils.getIncCounter(), info1.getResIR(), info2.getResIR());
             curIRBasicBlock.appendInstruction(instr);
-            return new ExpInfo(info1.getDimension(), instr);
+            return new ExpInfo(false, 0, instr);
         }
     }
 
@@ -264,16 +262,16 @@ public class Visitor {
             info2 = visitExp(node.getRExp()); // assuming dimension is equal
         }
         if (info1.isConst() && info2.isConst()) { // constant optimization
-            if (node.getOp().getType() == Token.Type.MULT) return new ExpInfo(info1.getValue() * info2.getValue(), info1.getDimension());
-            else if (node.getOp().getType() == Token.Type.DIV) return new ExpInfo(info1.getValue() / info2.getValue(), info1.getDimension());
-            else return new ExpInfo(info1.getValue() % info2.getValue(), info1.getDimension());
+            if (node.getOp().getType() == Token.Type.MULT) return new ExpInfo(false, info1.getValue() * info2.getValue(), 0);
+            else if (node.getOp().getType() == Token.Type.DIV) return new ExpInfo(false, info1.getValue() / info2.getValue(), 0);
+            else return new ExpInfo(false, info1.getValue() % info2.getValue(), 0);
         } else {
             final ArithmeticInstr instr = new ArithmeticInstr(
                     node.getOp().getType() == Token.Type.MULT ? ArithmeticInstr.Type.MUL :
                     node.getOp().getType() == Token.Type.DIV ? ArithmeticInstr.Type.SDIV : ArithmeticInstr.Type.SREM,
                     Utils.getIncCounter(), info1.getResIR(), info2.getResIR());
             curIRBasicBlock.appendInstruction(instr);
-            return new ExpInfo(info1.getDimension(), instr);
+            return new ExpInfo(false, 0, instr);
         }
     }
 
@@ -286,9 +284,9 @@ public class Visitor {
             final var rParamList = new ArrayList<Value>();
             if (sym == null) {
                 CompError.appendError(node.getIdent().getLineNum(), 'c', "undefined symbol " + node.getIdent().getValue());
-                return new ExpInfo(null, -1);
+                return new ExpInfo(false, null, -1);
             }
-            if (sym.getType().getCategory() != SymbolType.Category.FUNC) return new ExpInfo(null, -1); // shall be function call
+            if (sym.getType().getCategory() != SymbolType.Category.FUNC) return new ExpInfo(false, null, -1); // shall be function call
             if (node.getRParams() != null) { // has params
                 if (sym.getType().getParams().size() != node.getRParams().getExps().size())
                     CompError.appendError(node.getIdent().getLineNum(), 'd', "unmatched params count for function call " + node.getIdent().getValue());
@@ -311,73 +309,44 @@ public class Visitor {
                     new CallInstr((Function) sym.getIrValue(), rParamList) :
                     new CallInstr(Utils.getIncCounter(), (Function) sym.getIrValue(), rParamList);
             curIRBasicBlock.appendInstruction(call);
-            info = new ExpInfo(sym.getType().getRetType() == Token.Type.VOIDTK ? -1 : 0, call);
+            info = new ExpInfo(false, sym.getType().getRetType() == Token.Type.VOIDTK ? -1 : 0, call);
         } else { // -UnaryExp
             info = visitExp(node.getUExp());
             if (info.isConst()) { // constant optimization
-                if (node.getUOp().getType() == Token.Type.MINU) info = new ExpInfo(-info.getValue(), info.getDimension());
+                if (node.getUOp().getType() == Token.Type.MINU) info = new ExpInfo(false, -info.getValue(), 0);
+                else if(node.getUOp().getType() == Token.Type.NOT) info = new ExpInfo(false, info.getValue() == 0 ? 1 : 0, 0);
             } else if (node.getUOp().getType() == Token.Type.MINU) {
-                final ArithmeticInstr instr = new ArithmeticInstr(ArithmeticInstr.Type.SUB,
+                final Instruction instr = new ArithmeticInstr(ArithmeticInstr.Type.SUB,
                         Utils.getIncCounter(), new IntConstant(0), info.getResIR());
                 curIRBasicBlock.appendInstruction(instr);
-                info = new ExpInfo(info.getDimension(), instr);
+                info = new ExpInfo(false, 0, instr);
+            } else if (node.getUOp().getType() == Token.Type.NOT) {
+                Instruction instr = new IcmpInstr(IcmpInstr.Type.EQ, Utils.getIncCounter(), info.getResIR(), new IntConstant(0));
+                curIRBasicBlock.appendInstruction(instr);
+                instr = new ZextInstr(IntType.INT, Utils.getIncCounter(), instr);
+                curIRBasicBlock.appendInstruction(instr);
+                info = new ExpInfo(false, 0, instr);
             }
         }
         return info;
     }
 
-    private static void visitExp(LOrExp node) {
-        if (node.getLExp() == null) { // single LAndExp
-            visitExp(node.getRExp());
-        } else { // LOrExp || LAndExp
-            visitExp(node.getLExp());
-            visitExp(node.getRExp());
-        }
-    }
-
-    private static void visitExp(LAndExp node) {
-        if (node.getLExp() == null) { // single EqExp
-            visitExp(node.getRExp());
-        } else { // LAndExp && EqExp
-            visitExp(node.getLExp());
-            visitExp(node.getRExp());
-        }
-    }
-
-    private static void visitExp(EqExp node) {
-        if (node.getOp() == null) { // single RelExp
-            visitExp(node.getRExp());
-        } else { // EqExp == RelExp
-            visitExp(node.getLExp());
-            visitExp(node.getRExp());
-        }
-    }
-
-    private static void visitExp(RelExp node) {
-        if (node.getOp() == null) { // single AddExp
-            visitExp(node.getRExp());
-        } else { // RelExp >= AddExp
-            visitExp(node.getLExp());
-            visitExp(node.getRExp());
-        }
-    }
-
     private static ExpInfo visitExp(PrimaryExp node) {
         final ExpInfo info;
         if (node.getNumber() != null) { // Number
-            info = new ExpInfo(node.getNumber().getIntValue(), 0);
+            info = new ExpInfo(false, node.getNumber().getIntValue(), 0);
         } else if (node.getLVal() != null) { // LVal
             final var sym = visitLVal(node.getLVal());
-            if (sym == null) info = new ExpInfo(null, -1); // error: missing symbol
+            if (sym == null) info = new ExpInfo(false, null, -1); // error: missing symbol
             else if (lValueIRRes instanceof IntConstant) { // const variable
-                info = new ExpInfo(((IntConstant)lValueIRRes).getValue(), 0); // array pointer dereference
+                info = new ExpInfo(false, ((IntConstant)lValueIRRes).getValue(), 0); // array pointer dereference
             } else {
                 if (sym.getType().getDimension() - node.getLVal().getExps().size() == 0) { // int
                     final var instr = new LoadInstr(Utils.getIncCounter(), lValueIRRes);
                     curIRBasicBlock.appendInstruction(instr);
-                    info = new ExpInfo(0, instr);
+                    info = new ExpInfo(false, 0, instr);
                 } else { // array pointer
-                    info = new ExpInfo(null, sym.getType().getDimension() - node.getLVal().getExps().size());
+                    info = new ExpInfo(false, null, sym.getType().getDimension() - node.getLVal().getExps().size());
                 }
             }
         } else { // (exp)
@@ -408,7 +377,7 @@ public class Visitor {
     private static void visitStmt(Stmt node) {
         final Symbol sym;
         switch (node.getLexType()) {
-            case 1: // LVal = Exp;
+            case 1: // LVal = Exp; ! keep an eye on ForStmt, it has the same logic !
                 sym = visitLVal(node.getLVal1());
                 if (sym == null) break;
                 if (sym.getType().isConst())
@@ -426,21 +395,70 @@ public class Visitor {
                 visitBlock(node.getBlock(), true);
                 break;
             case 4: // if
+                ifBBS.add(new BasicBlock(-1)); // for next normal statement
+                if (node.getElseStmt() != null) ifBBS.add(new BasicBlock(-1)); // for else statement if exists
+                ifBBS.add(new BasicBlock(-1)); // for if statement
+                ifTrueBasicBlock = ifBBS.getLast();
+                ifFalseBasicBlock = ifBBS.get(ifBBS.size() - 2);
                 visitCond(node.getCond4());
+                curIRBasicBlock = ifBBS.pollLast();
+                curIRBasicBlock.setId(Utils.getIncCounter());
+                curIRFunction.appendBasicBlock(curIRBasicBlock);
                 visitStmt(node.getIfStmt());
-                if (node.getElseStmt() != null) visitStmt(node.getElseStmt());
+                curIRBasicBlock.appendInstruction(new BrInstr(node.getElseStmt() != null ? ifBBS.get(ifBBS.size() - 2) : ifBBS.getLast()));
+                if (node.getElseStmt() != null) {
+                    curIRBasicBlock = ifBBS.pollLast();
+                    curIRBasicBlock.setId(Utils.getIncCounter());
+                    curIRFunction.appendBasicBlock(curIRBasicBlock);
+                    visitStmt(node.getElseStmt());
+                    curIRBasicBlock.appendInstruction(new BrInstr(ifBBS.getLast()));
+                }
+                curIRBasicBlock = ifBBS.pollLast();
+                curIRBasicBlock.setId(Utils.getIncCounter());
+                curIRFunction.appendBasicBlock(curIRBasicBlock);
                 break;
             case 5: // for
                 if (node.getInitStmt() != null) visitForStmt(node.getInitStmt());
+                forBBS.add(new BasicBlock(-1));
+                curIRBasicBlock.appendInstruction(new BrInstr(forBBS.getLast()));
+                curIRBasicBlock = forBBS.getLast();
+                curIRBasicBlock.setId(Utils.getIncCounter());
+                curIRFunction.appendBasicBlock(curIRBasicBlock);
+                if (node.getLoopStmt() != null) forBBS.add(new BasicBlock(-1));
+                forBBS.add(new BasicBlock(-1)); forBBS.add(new BasicBlock(-1));
+                ifTrueBasicBlock = forBBS.getLast();
+                ifFalseBasicBlock = forBBS.get(forBBS.size() - 2);
                 if (node.getCond5() != null) visitCond(node.getCond5());
-                if (node.getLoopStmt() != null) visitForStmt(node.getLoopStmt());
+                else curIRBasicBlock.appendInstruction(new BrInstr(ifTrueBasicBlock));
+                curIRBasicBlock = forBBS.getLast();
+                curIRBasicBlock.setId(Utils.getIncCounter());
+                curIRFunction.appendBasicBlock(curIRBasicBlock);
                 loopCount++;
                 visitStmt(node.getStmt5());
+                curIRBasicBlock.appendInstruction(new BrInstr(forBBS.get(forBBS.size() - 3)));
                 loopCount--;
+                if (node.getLoopStmt() != null) {
+                    curIRBasicBlock = forBBS.get(forBBS.size() - 3);
+                    curIRBasicBlock.setId(Utils.getIncCounter());
+                    curIRFunction.appendBasicBlock(curIRBasicBlock);
+                    visitForStmt(node.getLoopStmt());
+                    curIRBasicBlock.appendInstruction(new BrInstr(forBBS.get(forBBS.size() - 4)));
+                }
+                curIRBasicBlock = forBBS.get(forBBS.size() - 2);
+                curIRBasicBlock.setId(Utils.getIncCounter());
+                curIRFunction.appendBasicBlock(curIRBasicBlock);
+                forBBS.pollLast(); forBBS.pollLast();
+                if (node.getLoopStmt() != null) forBBS.pollLast();
+                forBBS.pollLast();
                 break;
             case 6: // break or continue
                 if (loopCount <= 0) {
                     CompError.appendError(node.getbOrC().getLineNum(), 'm', "using break/continue outside loop block");
+                } else {
+                    if (node.getbOrC().getType() == Token.Type.BREAKTK) curIRBasicBlock.appendInstruction(new BrInstr(forBBS.get(forBBS.size() - 2)));
+                    else curIRBasicBlock.appendInstruction(new BrInstr(forBBS.get(forBBS.size() - 3)));
+                    curIRBasicBlock = new BasicBlock(Utils.getIncCounter());
+                    curIRFunction.appendBasicBlock(curIRBasicBlock);
                 }
                 break;
             case 7: // return
@@ -481,6 +499,9 @@ public class Visitor {
                         if (c == '%') {
                             curIRBasicBlock.appendInstruction(new CallInstr(exPutint, List.of(infoList.get(j++).getResIR())));
                             i+=2;
+                        } else if (c == '\\') {
+                            curIRBasicBlock.appendInstruction(new CallInstr(exPutch, List.of(new IntConstant('\n'))));
+                            i+=2;
                         } else {
                             curIRBasicBlock.appendInstruction(new CallInstr(exPutch, List.of(new IntConstant(c))));
                             i++;
@@ -492,12 +513,110 @@ public class Visitor {
     }
 
     private static void visitForStmt(ForStmt node) {
+        // the same to Stmt lexical rule 1
         final var sym = visitLVal(node.getLVal());
         if (sym == null) return;
         if (sym.getType().isConst())
             CompError.appendError(node.getLVal().getIdent().getLineNum(), 'h', "changing constant " + node.getLVal().getIdent().getValue());
-        else
-            visitExp(node.getExp());
+        else {
+            final var tlv = lValueIRRes;
+            final var instr = new StoreInstr(visitExp(node.getExp()).getResIR(), tlv);
+            curIRBasicBlock.appendInstruction(instr);
+        }
+    }
+
+    private static void visitExp(LOrExp node) {
+        if (node.getLExp() != null) { // Handle left LOrExp and short-path
+            ifBBS.add(ifFalseBasicBlock);
+            ifFalseBasicBlock = new BasicBlock(-1);
+            visitExp(node.getLExp());
+            ifFalseBasicBlock.setId(Utils.getIncCounter());
+            curIRBasicBlock = ifFalseBasicBlock;
+            curIRFunction.appendBasicBlock(curIRBasicBlock);
+            ifFalseBasicBlock = ifBBS.pollLast();
+        }
+        visitExp(node.getRExp());
+    }
+
+    private static void visitExp(LAndExp node) {
+        if (node.getLExp() != null) { // Handle left LAndExp and short-path
+            ifBBS.add(ifTrueBasicBlock);
+            ifTrueBasicBlock = new BasicBlock(-1);
+            visitExp(node.getLExp());
+            ifTrueBasicBlock.setId(Utils.getIncCounter());
+            curIRBasicBlock = ifTrueBasicBlock;
+            curIRFunction.appendBasicBlock(curIRBasicBlock);
+            ifTrueBasicBlock = ifBBS.pollLast();
+        }
+        final ExpInfo info;
+        info = visitExp(node.getRExp());
+        if (info.isConst()) curIRBasicBlock.appendInstruction(new BrInstr(info.getValue() != 0 ? ifTrueBasicBlock : ifFalseBasicBlock));
+        else if (!info.isBool()) {
+            final var instr = new IcmpInstr(IcmpInstr.Type.NE, Utils.getIncCounter(), info.getResIR(), new IntConstant(0));
+            curIRBasicBlock.appendInstruction(instr);
+            curIRBasicBlock.appendInstruction(new BrInstr(instr, ifTrueBasicBlock, ifFalseBasicBlock));
+        } else curIRBasicBlock.appendInstruction(new BrInstr(info.getResIR(), ifTrueBasicBlock, ifFalseBasicBlock));
+    }
+
+    private static ExpInfo visitExp(EqExp node) {
+        ExpInfo info1, info2;
+        if (node.getOp() == null) { // single RelExp
+            return visitExp(node.getRExp());
+        } else { // EqExp == RelExp
+            info1 = visitExp(node.getLExp());
+            info2 = visitExp(node.getRExp());
+        }
+        if (info1.isConst() && info2.isConst()) { // constant optimization
+            if (node.getOp().getType() == Token.Type.EQL) return new ExpInfo(true, info1.getValue().equals(info2.getValue()) ? 1 : 0, 0);
+            else /* NEQ */ return new ExpInfo(true, info1.getValue().equals(info2.getValue()) ? 0 : 1, 0);
+        } else {
+            Instruction instr;
+            if (!info1.isConst() && info1.isBool()) {
+                instr = new ZextInstr(IntType.INT, Utils.getIncCounter(), info1.getResIR());
+                curIRBasicBlock.appendInstruction(instr);
+                info1 = new ExpInfo(false, 0, instr);
+            }
+            if (!info2.isConst() && info2.isBool()) {
+                instr = new ZextInstr(IntType.INT, Utils.getIncCounter(), info2.getResIR());
+                curIRBasicBlock.appendInstruction(instr);
+                info2 = new ExpInfo(false, 0, instr);
+            }
+            instr = new IcmpInstr(
+                    node.getOp().getType() == Token.Type.EQL ? IcmpInstr.Type.EQ : IcmpInstr.Type.NE,
+                    Utils.getIncCounter(), info1.getResIR(), info2.getResIR());
+            curIRBasicBlock.appendInstruction(instr);
+            return new ExpInfo(true, 0, instr);
+        }
+    }
+
+    private static ExpInfo visitExp(RelExp node) {
+        ExpInfo info1, info2;
+        if (node.getOp() == null) { // single AddExp
+            return visitExp(node.getRExp());
+        } else { // RelExp >= AddExp
+            info1 = visitExp(node.getLExp());
+            info2 = visitExp(node.getRExp());
+        }
+        if (info1.isConst() && info2.isConst()) { // constant optimization
+            if (node.getOp().getType() == Token.Type.GRE) return new ExpInfo(true, info1.getValue() > info2.getValue() ? 1 : 0, 0);
+            else if (node.getOp().getType() == Token.Type.GEQ) return new ExpInfo(true, info1.getValue() >= info2.getValue() ? 1 : 0, 0);
+            else if (node.getOp().getType() == Token.Type.LSS) return new ExpInfo(true, info1.getValue() < info2.getValue() ? 1 : 0, 0);
+            else /* LEQ */ return new ExpInfo(true, info1.getValue() <= info2.getValue() ? 1 : 0, 0);
+        } else {
+            Instruction instr;
+            if (!info1.isConst() && info1.isBool()) {
+                instr = new ZextInstr(IntType.INT, Utils.getIncCounter(), info1.getResIR());
+                curIRBasicBlock.appendInstruction(instr);
+                info1 = new ExpInfo(false, 0, instr);
+            }
+            instr = new IcmpInstr(
+                    node.getOp().getType() == Token.Type.GRE ? IcmpInstr.Type.SGT :
+                            node.getOp().getType() == Token.Type.GEQ ? IcmpInstr.Type.SGE :
+                                    node.getOp().getType() == Token.Type.LSS ? IcmpInstr.Type.SLT : IcmpInstr.Type.SLE,
+                    Utils.getIncCounter(), info1.getResIR(), info2.getResIR());
+            curIRBasicBlock.appendInstruction(instr);
+            return new ExpInfo(true, 0, instr);
+        }
     }
 
     private static void visitCond(Cond node) {

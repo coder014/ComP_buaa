@@ -25,4 +25,10 @@ public class BasicBlock extends Value {
             sb.append('\n');
         }
     }
+
+    @Override
+    public void setId(int id) {
+        this.id = id;
+        this.name = "L" + id;
+    }
 }
