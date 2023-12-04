@@ -18,7 +18,7 @@ public class ExpInfo {
         this.dimension = dimension;
         this.resIR = value != null ? new IntConstant(value) : null;
     }
-    protected ExpInfo(boolean isBool, Integer dimension, Instruction resIR) {
+    protected ExpInfo(boolean isBool, Integer dimension, Value resIR) {
         this.isConst = false;
         this.isBool = isBool;
         this.value = null;

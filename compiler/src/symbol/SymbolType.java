@@ -21,8 +21,12 @@ public class SymbolType {
         return params;
     }
     public int getDimension() {
-        if (category == Category.ARRAY) return arrSizes.size();
+        if (arrSizes != null) return arrSizes.size();
         else return 0;
+    }
+    public boolean isParamArray() {
+        if (arrSizes == null) return false;
+        return arrSizes.get(0) == 0;
     }
     public Token.Type getRetType() {
         return bType;

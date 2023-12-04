@@ -72,10 +72,11 @@ public class Visitor {
                     irPType = IntType.INT;
                 } else if (param.getExps().size() == 1) { // 1-array pointer
                     pType = new SymbolType(false, List.of(0));
-                    irPType = null; // todo: array param as pointer
+                    irPType = new PointerType(IntType.INT);
                 } else { // 2-array pointer
-                    pType = new SymbolType(false, List.of(0, 0));
-                    irPType = null; // todo: array param as pointer
+                    final var dim2 = visitExp(param.getExps().get(1)).getValue();
+                    pType = new SymbolType(false, List.of(0, dim2));
+                    irPType = new PointerType(new ArrayType(dim2, IntType.INT));
                 }
                 sym = new Symbol(param.getIdent().getValue(), pType);
                 if (!SymbolTable.getCurrent().appendSymbol(sym)) {
@@ -94,8 +95,11 @@ public class Visitor {
         curIRFunction.appendBasicBlock(curIRBasicBlock);
         if (node.getParams() != null) prepareFuncStack(node.getParams().getParamList());
         visitBlock(block, false);
-        if (!isVoidFunction && !funcBlockHasEndingReturn(node.getBlock()))
+        final var hasEndingRet = funcBlockHasEndingReturn(node.getBlock());
+        if (!isVoidFunction && !hasEndingRet)
             CompError.appendError(block.getEndingLineNum(), 'g', "Missing ending return for function with ret-value");
+        if (isVoidFunction && !hasEndingRet) // missing ending return in void func, manually adding one
+            curIRBasicBlock.appendInstruction(new RetInstr());
         SymbolTable.exitCurrentScope();
         Module.INSTANCE.appendFunction(curIRFunction);
     }
@@ -154,26 +158,68 @@ public class Visitor {
 
     private static void visitDef(ConstDef node) {
         // assume btype is int
-        /* Assuming no errors in ConstExp
-         for (var dimExp : node.getExps()) {
-             // check expression only
-             visitExp(dimExp);
-         }
-         * Assuming no errors in InitVal
-         visitInitVal(node.getVal());
-         */
+        // ! keep updated with VarDef !
         final Symbol sym;
         ExpInfo info;
         ConstInitVal initVal = node.getVal();
-        // todo: treat const array as variable
         if (node.getExps().isEmpty()) { // constant
             sym = new Symbol(node.getIdent().getValue(), new SymbolType(true));
             info = visitExp(initVal.getExp());
             sym.setIntValue(info.getValue());
-        } else if (node.getExps().size() == 1) { // const 1-array
-            sym = new Symbol(node.getIdent().getValue(), new SymbolType(true, List.of(0)));
-        } else { // const 2-array
-            sym = new Symbol(node.getIdent().getValue(), new SymbolType(true, List.of(0, 0)));
+        } else if (node.getExps().size() == 1) { // 1-array
+            info = visitExp(node.getExps().get(0));
+            sym = new Symbol(node.getIdent().getValue(), new SymbolType(true, List.of(info.getValue())));
+            final var irType = new ArrayType(info.getValue(), IntType.INT);
+            if (SymbolTable.getCurrent().isRoot()) {
+                final var list = new ArrayList<Integer>();
+                for (final var val : initVal.getVals())
+                    list.add(visitExp(val.getExp()).getValue());
+                final var gv = new GlobalVar(sym.getName(), irType, list);
+                sym.setIrValue(gv);
+                Module.INSTANCE.appendGlobalVar(gv);
+            } else {
+                final var alloc = new AllocaInstr(Utils.getIncCounter(), irType);
+                sym.setIrValue(alloc);
+                curIRBasicBlock.appendInstruction(alloc);
+                for (int i = 0; i < initVal.getVals().size(); i++) {
+                    info = visitExp(initVal.getVals().get(i).getExp());
+                    final var res = new GetelementptrInstr(Utils.getIncCounter(), new PointerType(IntType.INT), alloc,
+                            new IntConstant(0), new IntConstant(i));
+                    curIRBasicBlock.appendInstruction(res);
+                    curIRBasicBlock.appendInstruction(new StoreInstr(info.getResIR(), res));
+                }
+            }
+        } else { // 2-array
+            info = visitExp(node.getExps().get(0));
+            final var info2 = visitExp(node.getExps().get(1));
+            sym = new Symbol(node.getIdent().getValue(), new SymbolType(true, List.of(info.getValue(), info2.getValue())));
+            final var irType = new ArrayType(info.getValue(), new ArrayType(info2.getValue(), IntType.INT));
+            if (SymbolTable.getCurrent().isRoot()) {
+                final var list = new ArrayList<List<Integer>>();
+                for (final var val1 : initVal.getVals()) {
+                    final var inner = new ArrayList<Integer>();
+                    for (final var val2 : val1.getVals())
+                        inner.add(visitExp(val2.getExp()).getValue());
+                    list.add(inner);
+                }
+                final var gv = new GlobalVar(sym.getName(), irType, list, false);
+                sym.setIrValue(gv);
+                Module.INSTANCE.appendGlobalVar(gv);
+            } else {
+                final var alloc = new AllocaInstr(Utils.getIncCounter(), irType);
+                sym.setIrValue(alloc);
+                curIRBasicBlock.appendInstruction(alloc);
+                for (int i = 0; i < initVal.getVals().size(); i++) {
+                    final var tVal = initVal.getVals().get(i);
+                    for (int j = 0; j < tVal.getVals().size(); j++) {
+                        info = visitExp(tVal.getVals().get(j).getExp());
+                        final var res = new GetelementptrInstr(Utils.getIncCounter(), new PointerType(IntType.INT), alloc,
+                                new IntConstant(0), new IntConstant(i), new IntConstant(j));
+                        curIRBasicBlock.appendInstruction(res);
+                        curIRBasicBlock.appendInstruction(new StoreInstr(info.getResIR(), res));
+                    }
+                }
+            }
         }
         if (!SymbolTable.getCurrent().appendSymbol(sym)) {
             CompError.appendError(node.getIdent().getLineNum(), 'b', "Duplicated definition for ident " + node.getIdent().getValue());
@@ -187,15 +233,7 @@ public class Visitor {
 
     private static void visitDef(VarDef node) {
         // assume btype is int
-        /* Assuming no errors in ConstExp
-         for (var dimExp : node.getExps()) {
-             // check expression only
-             visitExp(dimExp);
-         }
-         * Assuming no errors in InitVal
-         if (node.getVal() != null)
-             visitInitVal(node.getVal());
-         */
+        // ! keep updated with ConstDef !
         final Symbol sym;
         ExpInfo info = null;
         InitVal initVal = node.getVal();
@@ -216,9 +254,61 @@ public class Visitor {
                 }
             }
         } else if (node.getExps().size() == 1) { // 1-array
-            sym = new Symbol(node.getIdent().getValue(), new SymbolType(false, List.of(0)));
+            info = visitExp(node.getExps().get(0));
+            sym = new Symbol(node.getIdent().getValue(), new SymbolType(false, List.of(info.getValue())));
+            final var irType = new ArrayType(info.getValue(), IntType.INT);
+            if (SymbolTable.getCurrent().isRoot()) {
+                final var list = new ArrayList<Integer>();
+                if (initVal != null)
+                    for (final var val : initVal.getVals())
+                        list.add(visitExp(val.getExp()).getValue());
+                final var gv = new GlobalVar(sym.getName(), irType, list);
+                sym.setIrValue(gv);
+                Module.INSTANCE.appendGlobalVar(gv);
+            } else {
+                final var alloc = new AllocaInstr(Utils.getIncCounter(), irType);
+                sym.setIrValue(alloc);
+                curIRBasicBlock.appendInstruction(alloc);
+                if (initVal != null) for (int i = 0; i < initVal.getVals().size(); i++) {
+                    info = visitExp(initVal.getVals().get(i).getExp());
+                    final var res = new GetelementptrInstr(Utils.getIncCounter(), new PointerType(IntType.INT), alloc,
+                            new IntConstant(0), new IntConstant(i));
+                    curIRBasicBlock.appendInstruction(res);
+                    curIRBasicBlock.appendInstruction(new StoreInstr(info.getResIR(), res));
+                }
+            }
         } else { // 2-array
-            sym = new Symbol(node.getIdent().getValue(), new SymbolType(false, List.of(0, 0)));
+            info = visitExp(node.getExps().get(0));
+            final var info2 = visitExp(node.getExps().get(1));
+            sym = new Symbol(node.getIdent().getValue(), new SymbolType(false, List.of(info.getValue(), info2.getValue())));
+            final var irType = new ArrayType(info.getValue(), new ArrayType(info2.getValue(), IntType.INT));
+            if (SymbolTable.getCurrent().isRoot()) {
+                final var list = new ArrayList<List<Integer>>();
+                if (initVal != null)
+                    for (final var val1 : initVal.getVals()) {
+                        final var inner = new ArrayList<Integer>();
+                        for (final var val2 : val1.getVals())
+                            inner.add(visitExp(val2.getExp()).getValue());
+                        list.add(inner);
+                    }
+                final var gv = new GlobalVar(sym.getName(), irType, list, false);
+                sym.setIrValue(gv);
+                Module.INSTANCE.appendGlobalVar(gv);
+            } else {
+                final var alloc = new AllocaInstr(Utils.getIncCounter(), irType);
+                sym.setIrValue(alloc);
+                curIRBasicBlock.appendInstruction(alloc);
+                if (initVal != null) for (int i = 0; i < initVal.getVals().size(); i++) {
+                    final var tVal = initVal.getVals().get(i);
+                    for (int j = 0; j < tVal.getVals().size(); j++) {
+                        info = visitExp(tVal.getVals().get(j).getExp());
+                        final var res = new GetelementptrInstr(Utils.getIncCounter(), new PointerType(IntType.INT), alloc,
+                                new IntConstant(0), new IntConstant(i), new IntConstant(j));
+                        curIRBasicBlock.appendInstruction(res);
+                        curIRBasicBlock.appendInstruction(new StoreInstr(info.getResIR(), res));
+                    }
+                }
+            }
         }
         if (!SymbolTable.getCurrent().appendSymbol(sym)) {
             CompError.appendError(node.getIdent().getLineNum(), 'b', "Duplicated definition for ident " + node.getIdent().getValue());
@@ -339,15 +429,13 @@ public class Visitor {
             final var sym = visitLVal(node.getLVal());
             if (sym == null) info = new ExpInfo(false, null, -1); // error: missing symbol
             else if (lValueIRRes instanceof IntConstant) { // const variable
-                info = new ExpInfo(false, ((IntConstant)lValueIRRes).getValue(), 0); // array pointer dereference
+                info = new ExpInfo(false, ((IntConstant)lValueIRRes).getValue(), 0);
             } else {
                 if (sym.getType().getDimension() - node.getLVal().getExps().size() == 0) { // int
                     final var instr = new LoadInstr(Utils.getIncCounter(), lValueIRRes);
                     curIRBasicBlock.appendInstruction(instr);
                     info = new ExpInfo(false, 0, instr);
-                } else { // array pointer
-                    info = new ExpInfo(false, null, sym.getType().getDimension() - node.getLVal().getExps().size());
-                }
+                } else info = new ExpInfo(false, sym.getType().getDimension() - node.getLVal().getExps().size(), lValueIRRes);
             }
         } else { // (exp)
             info = visitExp(node.getExp());
@@ -362,13 +450,32 @@ public class Visitor {
             lValueIRRes = null;
             return null;
         }
-        // todo: handle array ptr LVal
-        for (var exp : node.getExps()) visitExp(exp);
         if (sym.getType().getDimension() == 0) {
             if (sym.getType().isConst()) { // basic const
                 lValueIRRes = new IntConstant(sym.getIntValue());
             } else {
                 lValueIRRes = sym.getIrValue();
+            }
+        } else {
+            Instruction res;
+            final Value arr;
+            if (sym.getType().isParamArray()) {
+                res = new LoadInstr(Utils.getIncCounter(), sym.getIrValue());
+                curIRBasicBlock.appendInstruction(res);
+                arr = res;
+            } else arr = sym.getIrValue();
+            final LinkedList<Value> subs = new LinkedList<>();
+            for (var exp : node.getExps()) subs.add(visitExp(exp).getResIR());
+            if (!sym.getType().isParamArray()) subs.addFirst(new IntConstant(0));
+            // array as RValue, downcasting to lower-dimed pointer
+            if (sym.getType().getDimension() - node.getExps().size() > 0) subs.addLast(new IntConstant(0));
+            if (subs.isEmpty()) lValueIRRes = arr;
+            else {
+                res = new GetelementptrInstr(Utils.getIncCounter(),
+                        GetelementptrInstr.resolveArrayUnwrap(arr.getValueType(), subs.size()),
+                        arr, subs.toArray(new Value[0]));
+                curIRBasicBlock.appendInstruction(res);
+                lValueIRRes = res;
             }
         }
         return sym;
@@ -471,6 +578,8 @@ public class Visitor {
                         else curIRBasicBlock.appendInstruction(new RetInstr(info.getResIR()));
                     }
                 } else curIRBasicBlock.appendInstruction(new RetInstr());
+                curIRBasicBlock = new BasicBlock(Utils.getIncCounter());
+                curIRFunction.appendBasicBlock(curIRBasicBlock);
                 break;
             case 8: // LVal = getint();
                 sym = visitLVal(node.getLVal8());

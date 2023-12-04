@@ -23,7 +23,7 @@ public class Compiler {
             try {
                 new PrintStream("llvm_ir.txt").print(sb);
             } catch (FileNotFoundException ignored) {}
-            System.out.print(sb);
+//            System.out.print(sb);
         }
     }
 }

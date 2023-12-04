@@ -17,8 +17,13 @@ public class BasicBlock extends Value {
         instructions.add(instr);
     }
 
+    public boolean isEmpty() {
+        return instructions.isEmpty();
+    }
+
     @Override
     public void emitString(StringBuilder sb) {
+        if (instructions.isEmpty()) return; // ignore trailing basicblock in function
         sb.append(getId()).append(":\n");
         for (final var instr : instructions) {
             instr.emitString(sb);

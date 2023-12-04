@@ -1,7 +1,5 @@
 package ir.type;
 
-import ir.Value;
-
 public class PointerType extends ValueType {
     private final ValueType derefType;
 
