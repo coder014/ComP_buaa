@@ -606,6 +606,7 @@ public class Visitor {
                     while (i<fmtStr.length()) {
                         char c = fmtStr.charAt(i);
                         if (c == '%') {
+                            if (j >= infoList.size()) break; // must be error, stop gen
                             curIRBasicBlock.appendInstruction(new CallInstr(exPutint, List.of(infoList.get(j++).getResIR())));
                             i+=2;
                         } else if (c == '\\') {
