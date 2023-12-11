@@ -2,6 +2,7 @@ package ir;
 
 import compiler.Utils;
 import ir.type.FunctionType;
+import ir.type.VoidType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +22,16 @@ public class Function extends User {
     public List<FuncParam> getParams() {
         return params;
     }
+    public List<BasicBlock> getBlocks() {
+        return blocks;
+    }
 
     public void appendBasicBlock(BasicBlock block) {
         blocks.add(block);
+    }
+
+    public boolean isVoidFunction() {
+        return type instanceof VoidType;
     }
 
     @Override

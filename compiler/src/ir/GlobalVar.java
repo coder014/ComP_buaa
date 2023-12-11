@@ -38,6 +38,16 @@ public class GlobalVar extends User {
         this.array2 = initArray2;
     }
 
+    public Integer getInitValue() {
+        return initValue;
+    }
+    public List<Integer> getArray1() {
+        return array1;
+    }
+    public List<List<Integer>> getArray2() {
+        return array2;
+    }
+
     @Override
     public void emitString(StringBuilder sb) {
         sb.append('@').append(name).append(" = dso_local global ");
@@ -46,7 +56,7 @@ public class GlobalVar extends User {
         if (initValue != null) sb.append(initValue);
         else if (array1 != null) emitArrayInitValue(sb, array1);
         else {
-            if (array2.size() == 0) sb.append("zeroinitializer");
+            if (array2.isEmpty()) sb.append("zeroinitializer");
             else {
                 final var t = ((ArrayType)((PointerType)type).getDeref()).getElementType();
                 sb.append('['); t.emitString(sb); sb.append(' '); emitArrayInitValue(sb, array2.get(0));
@@ -59,7 +69,7 @@ public class GlobalVar extends User {
     }
 
     private static void emitArrayInitValue(StringBuilder sb, List<Integer> list) {
-        if (list.size() == 0) sb.append("zeroinitializer");
+        if (list.isEmpty()) sb.append("zeroinitializer");
         else {
             sb.append("[i32 ").append(list.get(0));
             for (int i = 1; i < list.size(); i++) sb.append(", i32 ").append(list.get(i));

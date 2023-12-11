@@ -23,6 +23,13 @@ public class CallInstr extends Instruction {
         this.args = args;
     }
 
+    public Function getToFunc() {
+        return toFunc;
+    }
+    public List<Value> getArgs() {
+        return args;
+    }
+
     @Override
     public void emitString(StringBuilder sb) {
         super.emitString(sb);

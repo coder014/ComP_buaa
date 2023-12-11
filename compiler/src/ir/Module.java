@@ -16,6 +16,13 @@ public class Module implements IRPrintable {
         this.functions.add(func);
     }
 
+    public List<GlobalVar> getGlobalVars() {
+        return globalVars;
+    }
+    public List<Function> getFunctions() {
+        return functions;
+    }
+
     @Override
     public void emitString(StringBuilder sb) {
         sb.append("declare i32 @getint()\ndeclare void @putint(i32)\ndeclare void @putch(i32)\n\n");

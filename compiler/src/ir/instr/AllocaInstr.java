@@ -15,6 +15,10 @@ public class AllocaInstr extends Instruction {
         this.numElements = numElements;
     }
 
+    public ValueType getDerefType() {
+        return ((PointerType)type).getDeref();
+    }
+
     @Override
     public void emitString(StringBuilder sb) {
         super.emitString(sb);

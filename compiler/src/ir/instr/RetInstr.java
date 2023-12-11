@@ -17,6 +17,10 @@ public class RetInstr extends Instruction {
         this.retVal = retVal;
     }
 
+    public Value getRetVal() {
+        return retVal;
+    }
+
     @Override
     public void emitString(StringBuilder sb) {
         super.emitString(sb);

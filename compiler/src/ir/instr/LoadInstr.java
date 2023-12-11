@@ -12,6 +12,10 @@ public class LoadInstr extends Instruction {
         this.srcPtr = srcPtr;
     }
 
+    public Value getSrcPtr() {
+        return srcPtr;
+    }
+
     @Override
     public void emitString(StringBuilder sb) {
         super.emitString(sb);

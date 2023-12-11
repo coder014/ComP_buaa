@@ -15,6 +15,16 @@ public class IcmpInstr extends Instruction {
         this.cond = cond;
     }
 
+    public Type getCond() {
+        return cond;
+    }
+    public Value getOp1() {
+        return op1;
+    }
+    public Value getOp2() {
+        return op2;
+    }
+
     @Override
     public void emitString(StringBuilder sb) {
         super.emitString(sb);

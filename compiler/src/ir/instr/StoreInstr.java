@@ -15,6 +15,13 @@ public class StoreInstr extends Instruction {
         this.dstPtr = dstPtr;
     }
 
+    public Value getStoreValue() {
+        return storeValue;
+    }
+    public Value getDstPtr() {
+        return dstPtr;
+    }
+
     @Override
     public void emitString(StringBuilder sb) {
         super.emitString(sb);

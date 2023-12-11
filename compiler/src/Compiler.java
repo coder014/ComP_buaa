@@ -1,4 +1,5 @@
 import compiler.Lexer;
+import compiler.MIPSBackend;
 import compiler.ParseState;
 import compiler.Utils;
 import compiler.Visitor;
@@ -16,14 +17,17 @@ public class Compiler {
         final var state = new ParseState(new Lexer(is));
         final var comp = CompUnit.parse(state);
         Visitor.visitCompUnit(comp);
-        if (CompError.hasError()) CompError.printErrors();
-        else {
-            final StringBuilder sb = new StringBuilder();
-            Module.INSTANCE.emitString(sb);
-            try {
-                new PrintStream("llvm_ir.txt").print(sb);
-            } catch (FileNotFoundException ignored) {}
-//            System.out.print(sb);
+        if (CompError.hasError()) {
+            CompError.printErrors();
+            return;
         }
+//        final StringBuilder sb = new StringBuilder();
+//        Module.INSTANCE.emitString(sb);
+//        System.out.print(sb);
+        MIPSBackend.parseLLVM(Module.INSTANCE);
+        try {
+            final var ps = new PrintStream("mips.txt");
+            ps.print(MIPSBackend.emitOutput());
+        } catch (FileNotFoundException ignored) {}
     }
 }

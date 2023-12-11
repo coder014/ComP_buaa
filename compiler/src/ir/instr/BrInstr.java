@@ -21,6 +21,16 @@ public class BrInstr extends Instruction {
         this.fBranch = null;
     }
 
+    public Value getCond() {
+        return cond;
+    }
+    public Value gettBranch() {
+        return tBranch;
+    }
+    public Value getfBranch() {
+        return fBranch;
+    }
+
     @Override
     public void emitString(StringBuilder sb) {
         super.emitString(sb);

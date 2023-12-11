@@ -12,6 +12,10 @@ public class ZextInstr extends Instruction {
         this.toExt = toExt;
     }
 
+    public Value getToExt() {
+        return toExt;
+    }
+
     @Override
     public void emitString(StringBuilder sb) {
         super.emitString(sb);

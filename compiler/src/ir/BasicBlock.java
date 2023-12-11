@@ -16,6 +16,9 @@ public class BasicBlock extends Value {
     public void appendInstruction(Instruction instr) {
         instructions.add(instr);
     }
+    public List<Instruction> getInstructions() {
+        return instructions;
+    }
 
     public boolean isEmpty() {
         return instructions.isEmpty();

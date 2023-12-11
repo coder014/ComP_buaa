@@ -18,6 +18,13 @@ public class GetelementptrInstr extends Instruction {
         this.subs = List.of(subs);
     }
 
+    public Value getRefArray() {
+        return refArray;
+    }
+    public List<Value> getSubs() {
+        return subs;
+    }
+
     public static ValueType resolveArrayUnwrap(ValueType toRes, int count) {
         for (int i = 0; i < count; i++) {
             if (toRes instanceof PointerType) toRes = ((PointerType)toRes).getDeref();
