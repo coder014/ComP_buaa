@@ -1,7 +1,6 @@
 package compiler;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -11,7 +10,6 @@ public class RegisterAllocator {
     private final Map<Integer, Integer> vRegMap = new HashMap<>();
     private final Map<Integer, Integer> rRegMap = new HashMap<>();
     private final SortedSet<Integer> freeRRegs = new TreeSet<>(Integer::compareTo);
-    private final Set<Integer> inMemVRegs = new HashSet<>();
     public RegisterAllocator() {
         freeRRegs.add(8); freeRRegs.add(9); freeRRegs.add(10); freeRRegs.add(11);
         freeRRegs.add(12); freeRRegs.add(13); freeRRegs.add(14); freeRRegs.add(15);
@@ -19,8 +17,9 @@ public class RegisterAllocator {
         freeRRegs.add(20); freeRRegs.add(21); freeRRegs.add(22); freeRRegs.add(23);
     }
 
-    /*public int defRegisterAlloc(int vreg) {
-        if (vRegMap.containsKey(vreg) || inMemVRegs.contains(vreg)) Utils.logErrorf("vreg %d has already defined", vreg);
+    public int registerAllocate(int vreg) {
+        if (vRegMap.containsKey(vreg))
+            Utils.logErrorf("vreg %d has already allocated", vreg);
         if (!freeRRegs.isEmpty()) { // have free mips regs
             final int rreg = freeRRegs.iterator().next();
             freeRRegs.remove(rreg);
@@ -28,36 +27,35 @@ public class RegisterAllocator {
             vRegMap.put(vreg, rreg);
             return rreg;
         }
-        final int repReg = rRegMap.keySet().iterator().next();
-        inMemVRegs.add(rRegMap.get(repReg));
-        vRegMap.remove(rRegMap.get(repReg));
-        rRegMap.put(repReg, vreg);
-        vRegMap.put(vreg, repReg);
-        return -repReg;
+        return -1;
     }
 
-    public int singleUseRegisterAlloc(int vreg) {
-        if (!inMemVRegs.contains(vreg) && !vRegMap.containsKey(vreg)) Utils.logErrorf("vreg %d never defined or is already used", vreg);
-        if (vRegMap.containsKey(vreg)) { // in real regs
-            final var res = vRegMap.get(vreg);
-            vRegMap.remove(vreg);
-            rRegMap.remove(res);
-            freeRRegs.add(res);
-            return res;
-        }
-        inMemVRegs.remove(vreg);
-        if (!freeRRegs.isEmpty()) { // have free mips regs
-            return freeRRegs.iterator().next();
-        } else {
-            final int repReg = rRegMap.keySet().iterator().next();
-            inMemVRegs.add(rRegMap.get(repReg));
-            vRegMap.remove(rRegMap.get(repReg));
-            rRegMap.remove(repReg);
-            return -repReg;
-        }
+    public int registerUse(int vreg) {
+        if (!vRegMap.containsKey(vreg)) Utils.logErrorf("vreg %d never allocated or is already used", vreg);
+        final var res = vRegMap.get(vreg);
+        vRegMap.remove(vreg);
+        rRegMap.remove(res);
+        freeRRegs.add(res);
+        return res;
     }
 
-    public int[] doubleUseRegisterAlloc(int vreg1, int vreg2) {
+    public int rreg2Vreg(int rreg) {
+        return rRegMap.get(rreg);
+    }
+
+    public void moveRegister(int oldR, int newR) {
+        if (!vRegMap.containsKey(oldR)) Utils.logErrorf("vreg %d never allocated or is already used", oldR);
+        final var res = vRegMap.get(oldR);
+        vRegMap.remove(oldR);
+        vRegMap.put(newR, res);
+        rRegMap.put(res, newR);
+    }
+
+    public Set<Integer> getActiveRegisters() {
+        return rRegMap.keySet();
+    }
+
+    /*public int[] doubleUseRegisterAlloc(int vreg1, int vreg2) {
         if (!inMemVRegs.contains(vreg1) && !vRegMap.containsKey(vreg1)
                 && !inMemVRegs.contains(vreg2) && !vRegMap.containsKey(vreg2)) Utils.logErrorf("vreg %d or %d never defined or is already used", vreg1, vreg2);
         final var res = new int[2];

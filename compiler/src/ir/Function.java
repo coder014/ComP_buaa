@@ -31,7 +31,7 @@ public class Function extends User {
     }
 
     public boolean isVoidFunction() {
-        return type instanceof VoidType;
+        return ((FunctionType)type).getRetType() instanceof VoidType;
     }
 
     @Override

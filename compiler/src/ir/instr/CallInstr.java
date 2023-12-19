@@ -29,6 +29,12 @@ public class CallInstr extends Instruction {
     public List<Value> getArgs() {
         return args;
     }
+    public boolean containsArgId(int id) {
+        for (final var v : args)
+            if (!(v instanceof IntConstant))
+                if (v.getId() == id) return true;
+        return false;
+    }
 
     @Override
     public void emitString(StringBuilder sb) {

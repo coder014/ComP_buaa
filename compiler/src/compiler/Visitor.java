@@ -335,10 +335,17 @@ public class Visitor {
             if (node.getOp().getType() == Token.Type.MINU) return new ExpInfo(false, info1.getValue() - info2.getValue(), 0);
             else return new ExpInfo(false, info1.getValue() + info2.getValue(), 0);
         } else {
-            final ArithmeticInstr instr = new ArithmeticInstr(
-                    node.getOp().getType() == Token.Type.MINU ? ArithmeticInstr.Type.SUB : ArithmeticInstr.Type.ADD,
-                    Utils.getIncCounter(), info1.getResIR(), info2.getResIR());
-            curIRBasicBlock.appendInstruction(instr);
+            final Value instr;
+            if (node.getOp().getType() == Token.Type.PLUS && info1.isConst() && info1.getValue() == 0) {
+                instr = info2.getResIR();
+            } else if (info2.isConst() && info2.getValue() == 0) {
+                instr = info1.getResIR();
+            } else {
+                instr = new ArithmeticInstr(
+                        node.getOp().getType() == Token.Type.MINU ? ArithmeticInstr.Type.SUB : ArithmeticInstr.Type.ADD,
+                        Utils.getIncCounter(), info1.getResIR(), info2.getResIR());
+                curIRBasicBlock.appendInstruction((Instruction) instr);
+            }
             return new ExpInfo(false, 0, instr);
         }
     }
@@ -356,11 +363,26 @@ public class Visitor {
             else if (node.getOp().getType() == Token.Type.DIV) return new ExpInfo(false, info1.getValue() / info2.getValue(), 0);
             else return new ExpInfo(false, info1.getValue() % info2.getValue(), 0);
         } else {
-            final ArithmeticInstr instr = new ArithmeticInstr(
-                    node.getOp().getType() == Token.Type.MULT ? ArithmeticInstr.Type.MUL :
-                    node.getOp().getType() == Token.Type.DIV ? ArithmeticInstr.Type.SDIV : ArithmeticInstr.Type.SREM,
-                    Utils.getIncCounter(), info1.getResIR(), info2.getResIR());
-            curIRBasicBlock.appendInstruction(instr);
+            final Value instr;
+            if (info1.isConst() && info1.getValue() == 0) {
+                return new ExpInfo(false, 0, 0);
+            } else if (node.getOp().getType() == Token.Type.MULT && info2.isConst() && info2.getValue() == 0) {
+                return new ExpInfo(false, 0, 0);
+            } else if (node.getOp().getType() == Token.Type.MULT && info2.isConst() && info2.getValue() == 1) {
+                instr = info1.getResIR();
+            } else if (node.getOp().getType() == Token.Type.MULT && info1.isConst() && info1.getValue() == 1) {
+                instr = info2.getResIR();
+            } else if (node.getOp().getType() == Token.Type.DIV && info2.isConst() && info2.getValue() == 1) {
+                instr = info1.getResIR();
+            } else if (node.getOp().getType() == Token.Type.MOD && info2.isConst() && info2.getValue() == 1) {
+                return new ExpInfo(false, 0, 0);
+            } else {
+                instr = new ArithmeticInstr(
+                        node.getOp().getType() == Token.Type.MULT ? ArithmeticInstr.Type.MUL :
+                                node.getOp().getType() == Token.Type.DIV ? ArithmeticInstr.Type.SDIV : ArithmeticInstr.Type.SREM,
+                        Utils.getIncCounter(), info1.getResIR(), info2.getResIR());
+                curIRBasicBlock.appendInstruction((Instruction) instr);
+            }
             return new ExpInfo(false, 0, instr);
         }
     }
