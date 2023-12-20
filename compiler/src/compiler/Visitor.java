@@ -81,6 +81,7 @@ public class Visitor {
                 sym = new Symbol(param.getIdent().getValue(), pType);
                 if (!SymbolTable.getCurrent().appendSymbol(sym)) {
                     CompError.appendError(param.getIdent().getLineNum(), 'b', "Duplicated definition for param " + param.getIdent().getValue());
+                    irPTypeList.add(irPType);
                 } else {
                     pTypeList.add(pType);
                     irPTypeList.add(irPType);
