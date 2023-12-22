@@ -6,3 +6,6 @@ compiler/*.txt
 *.ll
 *.c
 *.pptx
+config.json
+*.md
+assets
