@@ -3,7 +3,6 @@ compiler/.idea
 compiler/out
 compiler/*.txt
 *.zip
-*.ll
 *.c
 *.pptx
 config.json
